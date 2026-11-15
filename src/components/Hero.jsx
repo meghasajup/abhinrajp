@@ -67,34 +67,6 @@ export default function Hero({
   // Render
   return (
     <section id="home"  className="relative min-h-screen flex flex-col justify-between pt-36 sm:pt-40 pb-8 px-5 sm:px-8 overflow-hidden bg-[var(--background)] text-[var(--foreground)] rounded-b-[40px] sm:rounded-b-[60px] shadow-[0_20px_40px_rgba(0,0,0,0.06)]">
-      {/* Background decoration */}
-      <div className="absolute inset-0 pointer-events-none opacity-30 dark:opacity-10 overflow-hidden text-[var(--foreground)]">
-        <svg
-          className="w-full h-full"
-          viewBox="0 0 1440 900"
-          fill="none"
-          preserveAspectRatio="none"
-        >
-          <path
-            d="M-100,500 L1600,280"
-            stroke="currentColor"
-            strokeWidth="1"
-            strokeDasharray="6 6"
-          />
-          <path
-            d="M-100,550 L1600,330"
-            stroke="currentColor"
-            strokeWidth="1"
-          />
-          <path
-            d="M-100,600 L1600,380"
-            stroke="currentColor"
-            strokeWidth="1"
-            strokeDasharray="3 3"
-          />
-        </svg>
-      </div>
-
       {/* Main hero container */}
       <div className="relative z-10 w-full max-w-[70rem] mx-auto flex-1 grid grid-cols-1 lg:grid-cols-2 items-center gap-8 lg:gap-10 my-auto">
         {/* Left content */}
