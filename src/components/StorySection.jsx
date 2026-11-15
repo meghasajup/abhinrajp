@@ -1,230 +1,439 @@
-import React, { useState, useEffect } from 'react';
-import { Calendar, Briefcase, Award, GraduationCap, ChevronRight } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { History } from 'lucide-react';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+// Register ScrollTrigger safely for browser / Vite / Next.js environments
+if (typeof window !== 'undefined') {
+  gsap.registerPlugin(ScrollTrigger);
+}
 
 const TIMELINE_STEPS = [
   {
     id: 1,
-    period: '2025 — Present',
+    year: '2026',
+    period: 'OCT 2026 — NOW',
     badge: 'CURRENT FOCUS',
-    role: 'Freelance Software Developer',
-    org: 'Freelancer · Custom Web, Business Software & AI',
+    role: 'Independent freelancer',
+    org: 'Working for myself, remote-first',
     angle: 45,
     bullets: [
-      'Develop custom web applications and business software for clients worldwide.',
-      'Build AI-powered tools and automation solutions using modern LLM APIs.',
-      'Create responsive, user-friendly interfaces and transform client ideas into real products.'
+      'Websites, iOS apps, interfaces and brand creatives, carried from the first sketch to launch.',
+      'Working directly with clients, wherever they are.'
     ]
   },
   {
     id: 2,
-    period: 'Internship',
-    badge: 'GOVT. PROJECT',
-    role: 'Software Development Intern',
-    org: 'Innovation Hub, Pilikula Science Centre',
+    year: '2026',
+    period: 'JUL 2026 — SEP 2026',
+    badge: 'DESIGN',
+    role: 'Graphic designer',
+    org: 'Himspring LLC',
     angle: 135,
     bullets: [
-      'Worked on the Biodiversity Explorer System, a government-supported project.',
-      'Contributed to development and deployment; actively used at the science centre.',
-      'Collaborated with the team to improve functionality, multi-touch listeners, and UX.'
+      'Managed visual content across social media handles for real estate, luxury water bottle and clothing brands.',
+      'Designed social media creatives, stories and carousels in'
     ]
   },
   {
     id: 3,
-    period: 'Freelance',
+    year: '2024',
+    period: 'FREELANCE',
     badge: 'INTERNATIONAL',
     role: 'Web Developer',
     org: 'International Client Projects (UAE)',
     angle: 225,
     bullets: [
       'Designed and developed a corporate web platform for a UAE-based company.',
-      'Delivered modern and responsive solutions based on client requirements.',
-      'Maintained professional communication and punctual project delivery standards.'
+      'Delivered modern and responsive solutions based on client requirements.'
     ]
   },
   {
     id: 4,
-    period: 'Education',
+    year: '2023',
+    period: 'EDUCATION',
     badge: 'FOUNDATION',
     role: 'Bachelor of Computer Applications (BCA)',
     org: 'BCA Graduate (2026) · 10+ Projects Built',
     angle: 315,
     bullets: [
       'Rigorous computer science foundations: data structures, algorithms, system architecture.',
-      'Built 10+ complete full-stack and software projects throughout academic journey.',
-      'Continuous independent technical research, modern tooling, and practical software engineering.'
+      'Built 10+ complete full-stack and software projects throughout academic journey.'
     ]
   }
 ];
 
+const AMBIENT_GRADIENTS = [
+  'radial-gradient(circle at 25% 25%, rgba(255, 175, 120, 0.42) 0%, rgba(255, 215, 175, 0.18) 38%, transparent 68%)',
+  'radial-gradient(circle at 25% 25%, rgba(255, 160, 140, 0.38) 0%, rgba(255, 205, 190, 0.16) 38%, transparent 68%)',
+  'radial-gradient(circle at 25% 25%, rgba(255, 190, 150, 0.38) 0%, rgba(255, 220, 180, 0.16) 38%, transparent 68%)',
+  'radial-gradient(circle at 25% 25%, rgba(160, 185, 220, 0.38) 0%, rgba(200, 218, 240, 0.16) 38%, transparent 68%)'
+];
+
+function OdometerReel({ digit }) {
+  const num = parseInt(digit, 10);
+  const isValid = !isNaN(num);
+
+  if (!isValid) {
+    return <span className="inline-block">{digit}</span>;
+  }
+
+  return (
+    <span className="inline-block h-[1em] overflow-hidden leading-none relative align-baseline">
+      <span
+        className="flex flex-col transition-transform duration-700 ease-[cubic-bezier(0.25,1,0.5,1)]"
+        style={{ transform: `translateY(-${num * 10}%)` }}
+      >
+        {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => (
+          <span key={n} className="h-[1em] flex items-center justify-center select-none">
+            {n}
+          </span>
+        ))}
+      </span>
+    </span>
+  );
+}
+
+function YearDisplay({ value }) {
+  const isNumeric = /^\d{4}$/.test(String(value));
+
+  if (isNumeric) {
+    const digits = String(value).split('');
+    return (
+      <div className="flex items-center justify-center text-6xl sm:text-7xl lg:text-[7.5rem] font-black tracking-tight text-[#171717] dark:text-white leading-none select-none font-sans">
+        {digits.map((d, i) => (
+          <OdometerReel key={i} digit={d} />
+        ))}
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex items-center justify-center text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-[#171717] dark:text-white leading-none select-none uppercase px-4 text-center transition-all duration-500">
+      {value}
+    </div>
+  );
+}
+
 export default function StorySection() {
   const [activeStep, setActiveStep] = useState(0);
 
+  // Animation & Layout Refs
+  const sectionRef = useRef(null);
+  const containerRef = useRef(null);
+  const leftPanelRef = useRef(null);
+  const rightColRef = useRef(null);
+  const dialRef = useRef(null);
+  const spineFillRef = useRef(null);
+  const itemRefs = useRef([]);
+  
+  // Refs for the 3 expanding clock layers
+  const ring1Ref = useRef(null);
+  const ring2Ref = useRef(null);
+  const ring3Ref = useRef(null);
+
   const currentStep = TIMELINE_STEPS[activeStep];
+  const displayYear = currentStep.year || (currentStep.period.match(/\b(20\d\d)\b/)?.[1]) || currentStep.period;
+
+  // Master GSAP ScrollTrigger Integration
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    gsap.registerPlugin(ScrollTrigger);
+
+    const ctx = gsap.context(() => {
+      const mm = gsap.matchMedia();
+
+      mm.add('(min-width: 1024px)', () => {
+        // Pin the Left Panel
+        ScrollTrigger.create({
+          trigger: containerRef.current,
+          start: 'top top',
+          end: 'bottom bottom',
+          pin: leftPanelRef.current,
+          pinSpacing: false,
+          anticipatePin: 1,
+        });
+
+        // Scrubbed Circular Dial Rotation
+        if (dialRef.current) {
+          gsap.to(dialRef.current, {
+            rotation: 90,
+            ease: 'none',
+            scrollTrigger: {
+              trigger: containerRef.current,
+              start: 'top top',
+              end: 'bottom bottom',
+              scrub: 0.5,
+            }
+          });
+        }
+
+        // Scrubbed 3-Layer Clock Expansion Animation on Scroll
+        if (ring1Ref.current && ring2Ref.current && ring3Ref.current && containerRef.current) {
+          const tl = gsap.timeline({
+            scrollTrigger: {
+              trigger: containerRef.current,
+              start: 'top top',
+              end: 'bottom bottom',
+              scrub: true,
+            }
+          });
+
+          tl.to(ring1Ref.current, { scale: 1.15, transformOrigin: 'center center', ease: 'none' }, 0)
+            .to(ring2Ref.current, { scale: 1.25, transformOrigin: 'center center', ease: 'none' }, 0)
+            .to(ring3Ref.current, { scale: 1.35, transformOrigin: 'center center', ease: 'none' }, 0);
+        }
+
+        // Scrubbed Vertical Timeline Spine Fill Line
+        if (spineFillRef.current && rightColRef.current) {
+          gsap.to(spineFillRef.current, {
+            height: '100%',
+            ease: 'none',
+            scrollTrigger: {
+              trigger: rightColRef.current,
+              start: 'top 40%',
+              end: 'bottom 60%',
+              scrub: true,
+            }
+          });
+        }
+      });
+
+      // Scroll-Triggered Active Steps
+      itemRefs.current.forEach((el, index) => {
+        if (!el) return;
+
+        ScrollTrigger.create({
+          trigger: el,
+          start: 'top 50%',
+          end: 'bottom 50%',
+          onEnter: () => setActiveStep(index),
+          onEnterBack: () => setActiveStep(index),
+        });
+      });
+
+    }, sectionRef);
+
+    const refreshTimer = setTimeout(() => {
+      ScrollTrigger.refresh();
+    }, 200);
+
+    return () => {
+      clearTimeout(refreshTimer);
+      ctx.revert();
+    };
+  }, []);
+
+  const handleStepClick = (index) => {
+    const target = itemRefs.current[index];
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  };
 
   return (
-    <section 
-      id="about" 
-      className="relative min-h-screen py-24 px-4 sm:px-8 md:px-14 border-t border-black/5 dark:border-white/5"
-      style={{
-        background: 'radial-gradient(ellipse at 20% 70%, rgba(201, 169, 110, 0.05) 0%, transparent 60%)'
-      }}
-    >
-      <div className="max-w-[88rem] w-full mx-auto">
-        
-        {/* Section Header */}
-        <div className="mb-14 max-w-2xl">
-          <span className="text-xs sm:text-sm font-mono tracking-widest text-accent font-semibold uppercase mb-2 block">
-            · 01 · The story so far
-          </span>
-          <h2 className="text-3xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-foreground">
-            A curious mind, <span className="font-cursive font-normal italic text-4xl sm:text-6xl md:text-7xl">always building.</span>
-          </h2>
-        </div>
+    <section ref={sectionRef} id="about" className="relative w-full overflow-hidden bg-[#FAF8F5] dark:bg-[#0c0d10] text-[#171717] dark:text-[#f3f4f6] transition-colors duration-700">
+      <div className="absolute inset-0 pointer-events-none opacity-[0.035] dark:opacity-[0.02] mix-blend-multiply dark:mix-blend-overlay z-0" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`}}/>
 
-        {/* 2-Column Layout: Left Tachometer Dial, Right Timeline Cards */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-start">
-          
-          {/* Left Column: Circular Odometer / Tachometer Gauge (Sticky) */}
-          <div className="lg:col-span-5 lg:sticky lg:top-28 flex flex-col items-center justify-center p-6 glass-pill rounded-3xl shadow-xl border border-white/60 dark:border-white/10">
-            <div className="relative w-64 h-64 sm:w-72 sm:h-72 flex items-center justify-center select-none">
+      {/* TOP-LEFT AMBIENT ORANGE ACCENT (Fixed from start to end of section height) */}
+      <div 
+        className="absolute top-0 left-0 w-[500px] sm:w-[700px] h-full pointer-events-none blur-3xl transition-all duration-1000 ease-out z-0 opacity-70 dark:opacity-30" 
+        style={{ background: 'radial-gradient(circle at 0% 15%, rgba(255, 150, 90, 0.35) 0%, rgba(255, 200, 150, 0.12) 40%, transparent 70%)' }}
+      />
+
+      {/* BOTTOM-RIGHT AMBIENT ORANGE ACCENT (Fixed from start to end of section height) */}
+      <div 
+        className="absolute bottom-0 right-0 w-[500px] sm:w-[700px] h-full pointer-events-none blur-3xl transition-all duration-1000 ease-out z-0 opacity-70 dark:opacity-30" 
+        style={{ background: 'radial-gradient(circle at 100% 85%, rgba(255, 140, 80, 0.3) 0%, rgba(255, 190, 130, 0.1) 40%, transparent 70%)' }}
+      />
+
+      {/* Active Step-based Dynamic Glow Accent */}
+      <div className="absolute top-1/3 left-1/4 w-[600px] sm:w-[800px] h-[600px] sm:h-[800px] rounded-full pointer-events-none blur-3xl transition-all duration-1000 ease-out z-0 opacity-50" style={{ background: AMBIENT_GRADIENTS[activeStep] || AMBIENT_GRADIENTS[0]}}/>
+
+      {/* Main Split Screen Container */}
+      <div
+        ref={containerRef}
+        className="relative max-w-7xl mx-auto px-6 sm:px-10 lg:px-12 flex flex-col lg:flex-row items-start z-10"
+      >
+        {/* =================================================================== */}
+        {/* LEFT COLUMN: Circular Dial Container Matching Reference Image      */}
+        {/* =================================================================== */}
+        <div
+          ref={leftPanelRef}
+          className="w-full lg:w-1/2 lg:min-h-screen lg:flex lg:flex-col lg:justify-center py-16 lg:py-0 pr-0 lg:pr-12 select-none"
+        >
+          {/* Centerpiece: SVG Circular Dial Exactly Containing All Left Content */}
+          <div className="relative w-full max-w-[380px] sm:max-w-[440px] aspect-square flex flex-col justify-center my-2 mx-auto p-8">
+            
+            {/* SVG Circular Technical Dial Background with 3 Expanding Layers */}
+            <svg
+              ref={dialRef}
+              className="absolute inset-0 w-full h-full pointer-events-none origin-center overflow-visible"
+              viewBox="0 0 400 400"
+            >
+              {/* Layer 1 (Inner Circle) */}
+              <circle ref={ring1Ref} cx="200" cy="200" r="135" fill="none" stroke="currentColor" strokeWidth="0.75" className="text-[#e5e7eb] dark:text-white/10 origin-center" />
               
-              {/* Outer Circular Dial with 360-degree radial tick marks */}
-              <svg className="w-full h-full" viewBox="0 0 240 240">
-                <circle 
-                  cx="120" 
-                  cy="120" 
-                  r="106" 
-                  fill="none" 
-                  stroke="currentColor" 
-                  strokeWidth="1.5" 
-                  className="text-black/10 dark:text-white/10"
-                />
-                <circle 
-                  cx="120" 
-                  cy="120" 
-                  r="92" 
-                  fill="none" 
-                  stroke="currentColor" 
-                  strokeWidth="0.5" 
-                  className="text-black/15 dark:text-white/15"
-                  strokeDasharray="2 4"
-                />
+              {/* Layer 2 (Middle Circle) */}
+              <circle ref={ring2Ref} cx="200" cy="200" r="160" fill="none" stroke="currentColor" strokeWidth="0.75" strokeDasharray="3 5" className="text-[#d4d4d8] dark:text-white/15 origin-center" />
+              
+              {/* Layer 3 (Outer Circle) */}
+              <circle ref={ring3Ref} cx="200" cy="200" r="185" fill="none" stroke="currentColor" strokeWidth="1" className="text-[#e5e7eb] dark:text-white/10 origin-center" />
 
-                {/* Dial Tick Marks */}
-                {Array.from({ length: 48 }).map((_, i) => {
-                  const angle = (i * 360) / 48;
-                  const isMajor = i % 12 === 0;
-                  const isMedium = i % 4 === 0;
-                  const len = isMajor ? 12 : isMedium ? 8 : 4;
+              <line x1="200" y1="10" x2="200" y2="24" stroke="currentColor" strokeWidth="1.5" className="text-[#a1a1aa] dark:text-white/30" />
+              <line x1="200" y1="376" x2="200" y2="390" stroke="currentColor" strokeWidth="1.5" className="text-[#a1a1aa] dark:text-white/30" />
+              <line x1="10" y1="200" x2="24" y2="200" stroke="currentColor" strokeWidth="1.5" className="text-[#a1a1aa] dark:text-white/30" />
+              <line x1="376" y1="200" x2="390" y2="200" stroke="currentColor" strokeWidth="1.5" className="text-[#a1a1aa] dark:text-white/30" />
+
+              <g>
+                {Array.from({ length: 72 }).map((_, i) => {
+                  const angle = (i * 360) / 72;
+                  const isMajor = i % 6 === 0;
+                  const isMid = i % 3 === 0;
+                  const len = isMajor ? 12 : isMid ? 8 : 5;
+                  const strokeWidth = isMajor ? 1.5 : isMid ? 1 : 0.75;
                   return (
                     <line
                       key={i}
-                      x1="120"
-                      y1={14}
-                      x2="120"
-                      y2={14 + len}
-                      stroke={isMajor ? '#c9a96e' : 'currentColor'}
-                      strokeWidth={isMajor ? 2.5 : isMedium ? 1.5 : 0.8}
-                      className={isMajor ? '' : 'text-foreground/30'}
-                      transform={`rotate(${angle} 120 120)`}
+                      x1="200"
+                      y1="16"
+                      x2="200"
+                      y2={16 + len}
+                      stroke="currentColor"
+                      strokeWidth={strokeWidth}
+                      className={isMajor ? 'text-[#a1a1aa] dark:text-white/40' : 'text-[#d4d4d8] dark:text-white/20'}
+                      transform={`rotate(${angle} 200 200)`}
                     />
                   );
                 })}
+              </g>
 
-                {/* Rotating Needle */}
-                <g 
-                  className="transition-transform duration-700 ease-out origin-center"
-                  style={{
-                    transform: `rotate(${currentStep.angle}deg)`,
-                    transformOrigin: '120px 120px'
-                  }}
-                >
-                  {/* Needle pointer */}
-                  <line 
-                    x1="120" 
-                    y1="120" 
-                    x2="120" 
-                    y2="28" 
-                    stroke="#c9a96e" 
-                    strokeWidth="3" 
-                    strokeLinecap="round" 
-                  />
-                  <polygon points="120,20 116,32 124,32" fill="#c9a96e" />
-                  {/* Center needle pivot */}
-                  <circle cx="120" cy="120" r="8" fill="#111111" stroke="#c9a96e" strokeWidth="2" />
-                  <circle cx="120" cy="120" r="3" fill="#c9a96e" />
-                </g>
-              </svg>
+              <text x="200" y="38" textAnchor="middle" className="text-[7px] font-mono fill-[#a1a1aa] dark:fill-white/30 select-none">000°</text>
+              <text x="368" y="203" textAnchor="middle" className="text-[7px] font-mono fill-[#a1a1aa] dark:fill-white/30 select-none">090°</text>
+              <text x="200" y="372" textAnchor="middle" className="text-[7px] font-mono fill-[#a1a1aa] dark:fill-white/30 select-none">180°</text>
+              <text x="32" y="203" textAnchor="middle" className="text-[7px] font-mono fill-[#a1a1aa] dark:fill-white/30 select-none">270°</text>
+            </svg>
 
-              {/* Digital Gauge Center Readout */}
-              <div className="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none pt-1">
-                <span className="text-[10px] font-mono tracking-widest text-accent uppercase font-bold">
-                  STEP 0{currentStep.id} / 04
-                </span>
-                <span className="text-xl sm:text-2xl font-black text-foreground tracking-tight my-0.5">
-                  {currentStep.period.split(' ')[0]}
-                </span>
-                <span className="text-[10px] font-mono text-muted uppercase">
-                  {currentStep.badge}
+            {/* Content Inside Circle Matching Reference Image Layout */}
+            <div className="relative z-10 flex flex-col items-start px-8 sm:px-10">
+              
+              {/* Label: • My story */}
+              <div className="flex items-center gap-1.5 mb-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#171717]/80 dark:bg-white/80" />
+                <span className="text-[11px] sm:text-xs font-mono tracking-widest text-[#737373] dark:text-[#a1a1aa] uppercase font-semibold">
+                  My story
                 </span>
               </div>
+
+              {/* Main Heading inside circle */}
+              <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#171717] dark:text-white leading-[1.1] mb-3">
+                Let's go back in time.
+              </h2>
+
+              {/* Scaled Odometer Year */}
+              <div className="my-1">
+                <YearDisplay value={displayYear} />
+              </div>
+
+              {/* Period & Counter matching reference image bottom layout inside circle */}
+              <div className="w-full flex items-center justify-between font-mono text-[11px] sm:text-xs tracking-widest text-[#71717a] dark:text-[#a1a1aa] uppercase font-medium mt-3 pt-3 border-t border-[#171717]/10 dark:border-white/10">
+                <span>{currentStep.period.toUpperCase()}</span>
+                <div className="flex items-center gap-2">
+                  <History className="w-3.5 h-3.5 text-[#71717a]" />
+                  <span>0{activeStep + 1} / 0{TIMELINE_STEPS.length}</span>
+                </div>
+              </div>
+
             </div>
 
-            {/* Quick step buttons */}
-            <div className="flex items-center gap-2 mt-4">
-              {TIMELINE_STEPS.map((step, idx) => (
-                <button
-                  key={step.id}
-                  onClick={() => setActiveStep(idx)}
-                  className={`w-8 h-8 rounded-full text-xs font-mono font-bold transition-all cursor-pointer ${
-                    activeStep === idx 
-                      ? 'bg-accent text-[#111111] shadow-md scale-110' 
-                      : 'bg-black/5 dark:bg-white/5 text-muted hover:text-foreground'
-                  }`}
-                  aria-label={`View step ${step.id}`}
-                >
-                  0{step.id}
-                </button>
-              ))}
-            </div>
           </div>
 
-          {/* Right Column: 4 Timeline Cards */}
-          <div className="lg:col-span-7 flex flex-col gap-6">
+          {/* Quick Step Buttons Below Dial */}
+          <div className="w-full max-w-[380px] sm:max-w-[440px] mx-auto px-4 mt-4 flex justify-center gap-2">
+            {TIMELINE_STEPS.map((step, idx) => (
+              <button
+                key={step.id}
+                onClick={() => handleStepClick(idx)}
+                className={`w-7 h-7 rounded-full text-xs font-mono font-bold transition-all cursor-pointer ${
+                  activeStep === idx
+                    ? 'bg-[#171717] dark:bg-white text-white dark:text-black shadow-sm scale-105'
+                    : 'bg-black/5 dark:bg-white/10 text-[#71717a] hover:text-[#171717] dark:hover:text-white'
+                }`}
+                aria-label={`Jump to step 0${step.id}`}
+              >
+                0{step.id}
+              </button>
+            ))}
+          </div>
+
+        </div>
+
+        {/* =================================================================== */}
+        {/* RIGHT COLUMN: Vertical Scrolling Editorial Career Timeline         */}
+        {/* =================================================================== */}
+        <div
+          ref={rightColRef}
+          className="w-full lg:w-1/2 lg:ml-auto relative py-12 lg:pt-[25vh] lg:pb-24 pl-6 sm:pl-10 lg:pl-16"
+        >
+          {/* Vertical Timeline Spine Line */}
+          <div className="absolute left-3 sm:left-4 lg:left-6 top-16 bottom-24 w-[1px] bg-[#e5e7eb] dark:bg-white/10">
+            <div
+              ref={spineFillRef}
+              className="w-full bg-[#171717] dark:bg-white origin-top h-0"
+            />
+          </div>
+
+          {/* Timeline Items Stack */}
+          <div className="flex flex-col gap-24 sm:gap-32">
             {TIMELINE_STEPS.map((step, idx) => {
               const isActive = activeStep === idx;
               return (
                 <div
                   key={step.id}
-                  onClick={() => setActiveStep(idx)}
-                  className={`glass-pill rounded-3xl p-6 sm:p-8 cursor-pointer transition-all duration-300 border ${
-                    isActive 
-                      ? 'border-accent shadow-[0_12px_32px_rgba(201,169,110,0.18)] scale-[1.01]' 
-                      : 'border-white/50 dark:border-white/10 opacity-75 hover:opacity-100 hover:border-black/20 dark:hover:border-white/20'
+                  ref={(el) => (itemRefs.current[idx] = el)}
+                  onClick={() => handleStepClick(idx)}
+                  className={`timeline-item relative pl-8 sm:pl-12 cursor-pointer transition-all duration-500 ${
+                    isActive ? 'opacity-100' : 'opacity-40 hover:opacity-75'
                   }`}
                 >
-                  <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-semibold bg-accent/15 text-accent border border-accent/30">
-                      <Calendar className="w-3 h-3" />
-                      {step.period}
-                    </span>
-                    <span className="text-xs font-mono font-semibold text-muted uppercase tracking-wider">
-                      {step.badge}
-                    </span>
+                  {/* Timeline Node on Spine */}
+                  <div className="absolute left-[-24px] sm:left-[-32px] lg:left-[-40px] top-1.5 flex items-center justify-center">
+                    {isActive ? (
+                      <div className="w-6 h-6 rounded-full flex items-center justify-center border border-emerald-500/50 bg-emerald-500/10">
+                        <div className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
+                      </div>
+                    ) : (
+                      <div className="w-6 h-6 rounded-full flex items-center justify-center">
+                        <div className="w-2 h-2 rounded-full bg-[#d4d4d8] dark:bg-white/20 transition-all duration-300" />
+                      </div>
+                    )}
                   </div>
 
-                  <h3 className="text-xl sm:text-2xl font-extrabold text-foreground tracking-tight">
+                  {/* Period Tag */}
+                  <div className="text-xs font-mono font-medium tracking-widest text-[#71717a] dark:text-[#a1a1aa] uppercase mb-2">
+                    {step.period}
+                  </div>
+
+                  {/* Role Title */}
+                  <h3 className="text-2xl sm:text-3xl lg:text-[2rem] font-bold tracking-tight text-[#171717] dark:text-white mb-2 leading-snug">
                     {step.role}
                   </h3>
-                  <p className="text-xs sm:text-sm font-mono text-accent font-medium mb-4 mt-0.5">
+
+                  {/* Organization */}
+                  <p className="text-sm sm:text-base text-[#525252] dark:text-[#a1a1aa] font-medium mb-6">
                     {step.org}
                   </p>
 
-                  <ul className="space-y-2 text-sm text-foreground/80">
+                  {/* Editorial Bullets */}
+                  <ul className="space-y-3 max-w-xl">
                     {step.bullets.map((b, bIdx) => (
-                      <li key={bIdx} className="flex items-start gap-2">
-                        <ChevronRight className="w-4 h-4 text-accent shrink-0 mt-0.5" />
-                        <span className="leading-relaxed">{b}</span>
+                      <li
+                        key={bIdx}
+                        className="flex items-start gap-3 text-sm sm:text-[15px] leading-relaxed text-[#525252] dark:text-[#cbd5e1]"
+                      >
+                        <span className="text-[#a1a1aa] select-none mt-0.5 font-mono">—</span>
+                        <span>{b}</span>
                       </li>
                     ))}
                   </ul>
@@ -232,9 +441,7 @@ export default function StorySection() {
               );
             })}
           </div>
-
         </div>
-
       </div>
     </section>
   );

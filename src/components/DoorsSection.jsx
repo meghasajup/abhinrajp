@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import './DoorPage.css';
+import '../styles/DoorPage.css';
 
 export const DOORS_DATA = [
   {
