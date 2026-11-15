@@ -12,7 +12,6 @@ export default function Hero({
   onOpenContact,
   onNavigate,
 }) {
-
   const [roleIndex, setRoleIndex] = useState(0);
   const [isFlipping, setIsFlipping] = useState(false);
   const [mousePosition, setMousePosition] = useState({
@@ -21,11 +20,9 @@ export default function Hero({
   });
 
   const currentRole = ROLES[roleIndex];
-  const nextRole = ROLES[
-    (roleIndex + 1) % ROLES.length
-  ];
+  const nextRole = ROLES[(roleIndex + 1) % ROLES.length];
 
-  //  Page Flip control
+  // Page Flip control
   const flipToNext = useCallback(() => {
     setIsFlipping((flipping) => {
       if (flipping) {
@@ -35,7 +32,7 @@ export default function Hero({
     });
   }, []);
 
-  //  Automatic page flip
+  // Automatic page flip
   useEffect(() => {
     const timer = setInterval(() => {
       flipToNext();
@@ -43,7 +40,7 @@ export default function Hero({
     return () => clearInterval(timer);
   }, [flipToNext]);
 
-  //  Page flip completion
+  // Page flip completion
   const handlePageTurnComplete = () => {
     setRoleIndex((prev) => {
       return (prev + 1) % ROLES.length;
@@ -69,7 +66,7 @@ export default function Hero({
 
   // Render
   return (
-    <section id="home" className="relative min-h-screen flex flex-col justify-between pt-28 sm:pt-32 pb-7 px-5 sm:px-8 overflow-hidden bg-[var(--background)] text-[var(--foreground)]">
+    <section id="home"  className="relative min-h-screen flex flex-col justify-between pt-36 sm:pt-40 pb-8 px-5 sm:px-8 overflow-hidden bg-[var(--background)] text-[var(--foreground)] rounded-b-[40px] sm:rounded-b-[60px] shadow-[0_20px_40px_rgba(0,0,0,0.06)]">
       {/* Background decoration */}
       <div className="absolute inset-0 pointer-events-none opacity-30 dark:opacity-10 overflow-hidden text-[var(--foreground)]">
         <svg
@@ -99,13 +96,11 @@ export default function Hero({
       </div>
 
       {/* Main hero container */}
-      <div
-        className="relative z-10 w-full max-w-[70rem] mx-auto flex-1 grid grid-cols-1 lg:grid-cols-2 items-center gap-8 lg:gap-10">
+      <div className="relative z-10 w-full max-w-[70rem] mx-auto flex-1 grid grid-cols-1 lg:grid-cols-2 items-center gap-8 lg:gap-10 my-auto">
         {/* Left content */}
-        <div
-          className="w-full flex flex-col justify-center items-start order-1 py-8 lg:py-0">
+        <div className="w-full flex flex-col justify-center items-start order-1 py-4 lg:py-0">
           {/* Developer Label */}
-          <div className="flex items-center gap-2 mb-4">
+          <div className="flex items-center gap-2 mb-3">
             <span className="w-[5px] h-[5px] rounded-full bg-[var(--hero-dot)]" />
             <span className="text-xs font-medium text-[var(--muted)]">
               Flutter Developer
@@ -134,8 +129,7 @@ export default function Hero({
                 <span className="text-[clamp(22px,2.8vw,34px)] font-black tracking-[-0.04em] text-[var(--calendar-text)] whitespace-nowrap overflow-hidden text-ellipsis">
                   {nextRole.title}
                 </span>
-                <span
-                  className="self-end text-[10px] font-mono font-semibold tracking-widest text-[var(--calendar-num)]">
+                <span className="self-end text-[10px] font-mono font-semibold tracking-widest text-[var(--calendar-num)]">
                   {nextRole.num}
                 </span>
               </div>
@@ -170,8 +164,7 @@ export default function Hero({
                 {Array.from({ length: 13 }).map((_, i) => (
                   <div key={i} className="flex flex-col items-center">
                     <div className="w-1.5 sm:w-2 h-3.5 sm:h-4 rounded-full bg-[var(--spiral-ring)] shadow-[0_3px_5px_rgba(0,0,0,0.4)] border border-neutral-400/60" />
-                    <div
-                      className="w-1.5 h-1.5 rounded-full bg-[var(--spiral-dot)] -mt-1" />
+                    <div className="w-1.5 h-1.5 rounded-full bg-[var(--spiral-dot)] -mt-1" />
                   </div>
                 ))}
               </div>
@@ -255,6 +248,9 @@ export default function Hero({
             className="w-3.5 h-3.5 animate-bounce" />
         </button>
       </div>
+
+      {/* Bottom Gradient Overlay matching Section Border Radius */}
+      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-[var(--hero-bottom-fade)] via-[var(--hero-bottom-fade-mid)] to-transparent pointer-events-none z-0 rounded-b-[40px] sm:rounded-b-[60px]" />
     </section>
   );
 }
