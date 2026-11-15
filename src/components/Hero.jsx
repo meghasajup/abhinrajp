@@ -66,7 +66,7 @@ export default function Hero({
 
   // Render
   return (
-    <section id="home"  className="relative min-h-screen flex flex-col justify-between pt-36 sm:pt-40 pb-8 px-5 sm:px-8 overflow-hidden bg-[var(--background)] text-[var(--foreground)] rounded-b-[40px] sm:rounded-b-[60px] shadow-[0_20px_40px_rgba(0,0,0,0.06)]">
+    <section id="home" className="relative min-h-screen flex flex-col justify-between pt-36 sm:pt-40 pb-8 px-5 sm:px-8 overflow-hidden bg-[var(--background)] text-[var(--foreground)] rounded-b-[40px] sm:rounded-b-[60px] shadow-[0_20px_40px_rgba(0,0,0,0.06)]">
       {/* Main hero container */}
       <div className="relative z-10 w-full max-w-[70rem] mx-auto flex-1 grid grid-cols-1 lg:grid-cols-2 items-center gap-8 lg:gap-10 my-auto">
         {/* Left content */}
@@ -105,21 +105,19 @@ export default function Hero({
                   {nextRole.num}
                 </span>
               </div>
+              
               {/* Current flipping page */}
-              <div key={roleIndex} onAnimationEnd={(e) => {
-                if (
-                  e.target === e.currentTarget &&
-                  isFlipping
-                ) {
-                  handlePageTurnComplete();
-                }
-              }}
-                className={`
-                  calendar-current-page
-                  ${isFlipping ? "calendar-page-turning" : ""}`}
+              <div 
+                key={roleIndex} 
+                onAnimationEnd={(e) => {
+                  if (e.target === e.currentTarget && isFlipping) {
+                    handlePageTurnComplete();
+                  }
+                }}
+                className={`calendar-current-page ${isFlipping ? "calendar-page-turning" : ""}`}
               >
                 {/* Front Side */}
-                <div className="calendar-paper-front rounded-2xl bg-[var(--calendar-bg)] border border-[var(--calendar-border)] px-5 sm:px-6 pt-4 pb-3 shadow-[0_10px_25px_var(--calendar-front-shadow)] flex flex-col justify-between">
+                <div className="calendar-paper-front rounded-2xl bg-[var(--calendar-bg)] border border-[var(--calendar-border)] px-5 sm:px-6 pt-4 pb-3 flex flex-col justify-between">
                   <span className="text-[clamp(22px,2.8vw,34px)] font-black tracking-[-0.04em] text-[var(--calendar-text)] whitespace-nowrap overflow-hidden text-ellipsis">
                     {currentRole.title}
                   </span>
@@ -127,8 +125,16 @@ export default function Hero({
                     {currentRole.num}
                   </span>
                 </div>
+                
                 {/* Back Side */}
-                <div className="calendar-paper-back" />
+                <div className="calendar-paper-back rounded-2xl bg-[var(--calendar-bg)] border border-[var(--calendar-border)] px-5 sm:px-6 pt-4 pb-3 flex flex-col justify-between">
+                  <span className="text-[clamp(22px,2.8vw,34px)] font-black tracking-[-0.04em] text-[var(--calendar-text)] whitespace-nowrap overflow-hidden text-ellipsis">
+                    {nextRole.title}
+                  </span>
+                  <span className="self-end text-[10px] font-mono font-semibold tracking-widest text-[var(--calendar-num)]">
+                    {nextRole.num}
+                  </span>
+                </div>
               </div>
 
               {/* Spiral rings */}
@@ -214,11 +220,11 @@ export default function Hero({
           FLUTTER DEVELOPER
         </span>
 
-        <button onClick={() => onNavigate("#works")} className="flex items-center gap-1.5 hover:text-[var(--foreground)] transition-colors cursor-pointer">
+        <div className="flex items-center gap-1.5 hover:text-[var(--foreground)] transition-colors">
           <span>SCROLL TO EXPLORE</span>
           <ChevronDown
             className="w-3.5 h-3.5 animate-bounce" />
-        </button>
+        </div>
       </div>
 
       {/* Bottom Gradient Overlay matching Section Border Radius */}
