@@ -1,13 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import './DoorPage.css';
 
-const DOORS_DATA = [
+export const DOORS_DATA = [
   {
     id: 'web-developer',
     title: 'Web Development',
-    plate: 'WEB DEVELOPER',
+    plateTop: 'WEB',
+    plateBottom: 'DEVELOPER',
     color: '#22304a',
+    colorDark: '#1c2840',
     route: '/web-developer/',
-    subtitle: 'END TO END, FROM SKETCH TO LIVE SITE',
+    subtitle: 'End to end, from sketch to live site',
     features: [
       'Discovery & planning',
       'UX & visual design',
@@ -19,10 +22,12 @@ const DOORS_DATA = [
   {
     id: 'app-developer',
     title: 'App Development',
-    plate: 'APP DEVELOPER',
+    plateTop: 'APP',
+    plateBottom: 'DEVELOPER',
     color: '#4a3540',
-    route: '/developer/',
-    subtitle: 'FROM THE FIRST IDEA TO THE APP STORE',
+    colorDark: '#3f2d37',
+    route: '/app-developer/',
+    subtitle: 'From the first idea to the app store',
     features: [
       'Product scoping & user flows',
       'Interface design',
@@ -34,10 +39,12 @@ const DOORS_DATA = [
   {
     id: 'ui-ux-designer',
     title: 'UI/UX Design',
-    plate: 'UI/UX DESIGNER',
-    color: '#5a6d57',
-    route: '/developer/',
-    subtitle: 'RESEARCH FIRST, PIXELS SECOND',
+    plateTop: 'UI/UX',
+    plateBottom: 'DESIGNER',
+    color: '#7a8670',
+    colorDark: '#66705d',
+    route: '/ui-ux-designer/',
+    subtitle: 'Research first, pixels second',
     features: [
       'Brand & business needs analysis',
       'User & competitor research',
@@ -46,165 +53,309 @@ const DOORS_DATA = [
       'Interactive prototypes & testing',
     ],
   },
-  {
-    id: 'graphic-designer',
-    title: 'Graphic Design',
-    plate: 'GRAPHIC DESIGNER',
-    color: '#8c5332',
-    route: '/developer/',
-    subtitle: 'VISUAL CONTENT TRUE TO THE BRAND',
-    features: [
-      'Brand, audience & tone analysis',
-      'Built around brand guidelines',
-      'Posters & social media creatives',
-      'Strong type & clear hierarchy',
-      'Every format each platform needs',
-    ],
-  },
 ];
 
 export default function DoorsPage({ onNavigate }) {
-  const [hoveredIndex, setHoveredIndex] = useState(null);
-  const [openedDoorIndex, setOpenedDoorIndex] = useState(null);
+  const [activeDoor, setActiveDoor] = useState(-1);
+  const [openedDoor, setOpenedDoor] = useState(-1);
   const [isPressing, setIsPressing] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isPulling, setIsPulling] = useState(false);
+  const [currentTime, setCurrentTime] = useState('');
 
-  const handleOpenDoor = (index, e) => {
-    e.stopPropagation();
-    setHoveredIndex(index);
+  // Heading animation
+  const [headingVisible, setHeadingVisible] = useState(false);
+  const headingRef = useRef(null);
+  const wallRef = useRef(null);
+  const unitsRef = useRef([]);
+  const [dinfoPos, setDinfoPos] = useState({
+    left: 0,
+    top: 0,
+    width: 340,
+    visible: false,
+  });
+
+  // Heading animation
+  useEffect(() => {
+    const headingElement = headingRef.current;
+    if (!headingElement) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setHeadingVisible(true);
+          observer.unobserve(headingElement);
+        }
+      },
+      { threshold: 0.35 }
+    );
+    observer.observe(headingElement);
+    return () => observer.disconnect();
+  }, []);
+
+  // Information panel
+  useEffect(() => {
+    if (activeDoor < 0 || !wallRef.current) {
+      setDinfoPos((prev) => ({
+        ...prev,
+        visible: false,
+      }));
+      return;
+    }
+
+    const wallRect = wallRef.current.getBoundingClientRect();
+    const currentUnit = unitsRef.current[activeDoor];
+    if (!currentUnit) return;
+    const uRect = currentUnit.getBoundingClientRect();
+    const toRight = activeDoor < 2;
+    let aRect;
+    let bRect;
+    if (toRight) {
+      aRect = unitsRef.current[2]?.getBoundingClientRect() || uRect;
+      bRect = unitsRef.current[3]?.getBoundingClientRect() || aRect;
+    } else {
+      aRect = unitsRef.current[0]?.getBoundingClientRect() || uRect;
+      bRect = unitsRef.current[1]?.getBoundingClientRect() || aRect;
+    }
+
+    const leftEdge = Math.min(aRect.left, bRect.left);
+    const rightEdge = Math.max(aRect.right, bRect.right);
+    const cardWidth = Math.min(rightEdge - leftEdge, 24 * 16);
+    const targetLeft = leftEdge - wallRect.left + (rightEdge - leftEdge - cardWidth) / 2;
+    const targetTop = uRect.top - wallRect.top + uRect.height * 0.46 - 110;
+
+    setDinfoPos({
+      left: targetLeft,
+      top: targetTop,
+      width: cardWidth,
+      visible: true,
+    });
+  }, [activeDoor]);
+
+
+  // Door click and navigation
+  const handleDoorClick = (index, e) => {
+    if (e) e.stopPropagation();
+    if (openedDoor >= 0) return;
+    setActiveDoor(index);
     setIsPressing(true);
-    setOpenedDoorIndex(index);
+    setOpenedDoor(index);
 
+    // Brass latch sound
+    if (typeof window !== 'undefined') {
+      try {
+        const AudioContextClass =
+          window.AudioContext || window.webkitAudioContext;
+
+        if (AudioContextClass) {
+          const ctx = new AudioContextClass();
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(340, ctx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(
+            120,
+            ctx.currentTime + 0.14
+          );
+          gain.gain.setValueAtTime(0.18, ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(
+            0.001,
+            ctx.currentTime + 0.2
+          );
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start();
+          osc.stop(ctx.currentTime + 0.2);
+        }
+      } catch { }
+    }
+
+    // Navigate after opening animation
     setTimeout(() => {
+      setIsPressing(false);
       if (onNavigate) {
         onNavigate(DOORS_DATA[index].route);
       }
       setTimeout(() => {
-        setOpenedDoorIndex(null);
-        setIsPressing(false);
-      }, 500);
-    }, 700);
+        setOpenedDoor(-1);
+        setActiveDoor(-1);
+      }, 600);
+    }, 760);
   };
 
-  return (
-    <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)] py-24 px-4 sm:px-8 md:px-14 flex flex-col justify-center items-center overflow-hidden">
-      <div className="max-w-[75rem] w-full mx-auto flex flex-col items-center justify-center z-10">
-        
-        {/* Section Heading */}
-        <div className="text-center mb-16 max-w-full overflow-x-hidden px-2">
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-[var(--foreground)] whitespace-nowrap">
-            Magic happens behind the doors
-          </h2>
-        </div>
+  // Keyboard controls
+  const handleKeyDown = (e, index) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      handleDoorClick(index, e);
+    } else if (e.key === 'ArrowRight') {
+      e.preventDefault();
 
-        {/* Doors Container */}
-        <div 
-          className="relative flex items-end gap-5 sm:gap-7 md:gap-9 justify-center w-full max-w-5xl perspective-[1200px]"
-          onMouseLeave={() => setHoveredIndex(null)}
+      setActiveDoor((prev) =>
+        prev < 0 ? 0 : (prev + 1) % DOORS_DATA.length
+      );
+    } else if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+
+      setActiveDoor((prev) =>
+        prev < 0
+          ? DOORS_DATA.length - 1
+          : (prev - 1 + DOORS_DATA.length) % DOORS_DATA.length
+      );
+    } else if (e.key === 'Escape') {
+      setActiveDoor(-1);
+    }
+  };
+
+  // Render
+  return (
+    <div className="relative h-screen max-h-screen bg-[var(--background)] text-[var(--foreground)] flex flex-col overflow-hidden select-none transition-colors duration-500 m-0 p-0">
+      <main className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 md:px-8 pt-6 sm:pt-8 pb-0 flex flex-col flex-1 min-h-0 items-center">
+        {/* Heading */}
+        <h1 ref={headingRef} className={`doors-heading ${headingVisible ? 'doors-heading-visible' : ''}`} aria-label="Magic happens behind the doors">
+          {"Magic happens behind the doors".split("").map(
+            (letter, index) => (
+              <span key={index} className="doors-heading-letter"
+                style={{ transitionDelay: `${index * 0.035}s`, }} aria-hidden="true">
+                {letter === ' ' ? '\u00A0' : letter}
+              </span>
+            )
+          )}
+        </h1>
+
+        {/* Doors Row */}
+        <div ref={wallRef} role="region" aria-label="Available services" className={`relative w-full max-w-6xl flex flex-1 min-h-0 items-end justify-center gap-3 sm:gap-5 md:gap-7 lg:gap-8 pb-0 mt-auto ${activeDoor >= 0 ? 'doors-focus' : ''
+          }`} onMouseLeave={() => {
+            if (openedDoor < 0) {
+              setActiveDoor(-1);
+            }
+          }}
         >
+
+          {/* Information panel */}
+          {activeDoor >= 0 && (
+            <div role="tooltip" className={`dinfo hidden lg:block ${dinfoPos.visible ? 'on' : ''}`}
+              style={{
+                left: `${dinfoPos.left}px`,
+                top: `${dinfoPos.top}px`,
+                width: `${dinfoPos.width}px`,
+              }}
+            >
+              <h3 className="dinfo__h"> {DOORS_DATA[activeDoor].title} </h3>
+              <p className="dinfo__t">{DOORS_DATA[activeDoor].subtitle}</p>
+              <ul className="dinfo__p">
+                {DOORS_DATA[activeDoor].features.map(
+                  (feature, fIdx) => (
+                    <li key={fIdx}>{feature}</li>
+                  )
+                )}
+              </ul>
+            </div>
+          )}
+
+          {/* Three doors */}
           {DOORS_DATA.map((door, idx) => {
-            const isHovered = hoveredIndex === idx;
-            const isAnyHovered = hoveredIndex !== null;
-            const isOpened = openedDoorIndex === idx;
+            const isHovered = activeDoor === idx;
+            const isOpened = openedDoor === idx;
+            const isPress = isPressing && activeDoor === idx;
 
             return (
-              <div key={door.id} className="relative flex flex-col items-center">
-                
-                {/* Description Popup */}
-                {isHovered && (
-                  <div 
-                    className={`hidden md:flex flex-col justify-center absolute top-1/2 -translate-y-1/2 w-[285px] z-30 p-2 pointer-events-none transition-all duration-300 ${
-                      idx >= 2 ? 'right-[calc(100%+2rem)]' : 'left-[calc(100%+2rem)]'
-                    }`}
-                  >
-                    <h3 className="text-2xl font-bold text-[var(--foreground)] mb-1">{door.title}</h3>
-                    <p className="text-[10px] font-mono tracking-wider text-[var(--muted)] mb-5 uppercase">{door.subtitle}</p>
-                    <ul className="space-y-2.5">
-                      {door.features.map((feature, fIdx) => (
-                        <li key={fIdx} className="flex items-center text-xs sm:text-sm text-[var(--foreground)] opacity-80">
-                          <span className="mr-2 text-[var(--accent)]">✔</span>
-                          {feature}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-
-                {/* Door Item */}
-                <div 
-                  onMouseEnter={() => setHoveredIndex(idx)}
-                  onClick={() => setHoveredIndex(idx)}
-                  className={`relative flex flex-col items-center cursor-pointer transition-all duration-500 w-[150px] sm:w-[185px] md:w-[220px] z-10 ${
-                    isAnyHovered 
-                      ? (isHovered ? 'opacity-100 scale-105' : 'opacity-25') 
-                      : 'opacity-100'
-                  }`}
-                >
-                  <div className="relative w-full aspect-[1/2.0] rounded-t-[140px] p-3 sm:p-3.5 bg-neutral-200 dark:bg-neutral-800 shadow-[0_25px_50px_rgba(0,0,0,0.18)] border-2 border-white dark:border-neutral-700 flex flex-col">
-                    <div className="absolute inset-3 sm:inset-3.5 rounded-t-[125px] bg-neutral-950 flex flex-col items-center justify-center p-2 text-center overflow-hidden">
-                      <span className="text-[10px] font-mono text-[#c9a96e] font-semibold tracking-widest uppercase animate-pulse">
-                        ENTER →
+              <div key={door.id} ref={(el) => (unitsRef.current[idx] = el)} className={`unit ${isHovered ? 'on' : ''} ${isPress ? 'press' : ''}`}
+                style={{
+                  '--door': door.color,
+                  '--door-dk': door.colorDark,
+                }}
+              >
+                <button type="button" tabIndex={0} aria-label={`Open the ${door.title} door`} aria-expanded={isOpened} className="doorway" onMouseEnter={() => setActiveDoor(idx)} onFocus={() => setActiveDoor(idx)} onBlur={() => setActiveDoor(-1)} onClick={(e) => handleDoorClick(idx, e)} onKeyDown={(e) => handleKeyDown(e, idx)}>
+                  {/* Oiter arch */}
+                  <span className="casing"></span>
+                  {/* Door opening */}
+                  <span className="opening">
+                    <span className="room"></span>
+                    {/* 3D door panel */}
+                    <span className="door" style={{ transform: isOpened ? 'rotateY(72deg)' : isHovered ? 'rotateY(16deg)' : 'rotateY(0deg)', }}>
+                      {/* Fluted panel */}
+                      <span className="door__flute"></span>
+                      {/* Nameplate */}
+                      <span className="plate">
+                        <span>{door.plateTop}</span>
+                        <br />
+                        <span>{door.plateBottom}</span>
                       </span>
-                    </div>
-
-                    <div 
-                      className="relative w-full h-full rounded-t-[125px] shadow-2xl flex flex-col justify-between py-10 px-3.5 border border-white/20 overflow-hidden transition-all duration-500 origin-left"
-                      style={{
-                        backgroundColor: door.color,
-                        transform: isOpened 
-                          ? 'perspective(1000px) rotateY(-80deg)' 
-                          : isHovered 
-                            ? 'perspective(1000px) rotateY(25deg)' 
-                            : 'perspective(1000px) rotateY(0deg)',
-                      }}
-                    >
-                      <div className="absolute inset-0 flex justify-evenly pointer-events-none opacity-25">
-                        {Array.from({ length: 6 }).map((_, i) => (
-                          <div key={i} className="w-[1px] h-full bg-black/50 shadow-sm" />
-                        ))}
-                      </div>
-
-                      {isHovered && (
-                        <div className="absolute top-[32%] left-1/2 -translate-x-1/2 bg-neutral-950/90 border border-[#c9a96e]/60 px-3 py-1.5 rounded-[4px] shadow-lg pointer-events-none whitespace-nowrap z-20">
-                          <span className="text-[9px] sm:text-[10px] font-mono text-[#c9a96e] tracking-widest uppercase font-semibold">
-                            Click to enter
-                          </span>
-                        </div>
-                      )}
-
-                      <div className="relative z-10 px-2.5 py-2 rounded-[4px] text-[10px] sm:text-xs font-bold tracking-wider uppercase text-center mt-10 shadow-md border border-[#dfcda4] bg-gradient-to-r from-[#dfcda4] via-[#c9a96e] to-[#8a6a2c] text-neutral-950 mx-auto w-[90%]">
-                        {door.plate}
-                      </div>
-
-                      <div 
-                        onClick={(e) => handleOpenDoor(idx, e)}
-                        className="relative z-10 self-end mr-3 sm:mr-5 flex flex-col items-center my-auto group/handle cursor-pointer"
-                        title={`Open the ${door.title} door`}
-                      >
-                        <div className={`w-8 sm:w-11 h-3 rounded-full bg-gradient-to-r from-[#f5ebd6] via-[#dfcda4] to-[#8a6a2c] shadow-[0_2px_5px_rgba(0,0,0,0.3)] transition-transform duration-200 ${
-                          isPressing && isHovered ? 'rotate-12 translate-y-1' : 'group-hover/handle:-rotate-6'
-                        }`} />
-                        <div className="w-4 h-4.5 bg-gradient-to-b from-[#dfcda4] to-[#8a6a2c] rounded-b-md -mt-0.5 flex items-center justify-center shadow-inner border border-[#f5ebd6]/40">
-                          <div className="w-1 h-2 bg-neutral-950 rounded-full" />
-                        </div>
-                      </div>
-
-                      <div className="w-full h-3.5 bg-black/30 rounded-sm mt-auto" />
-                    </div>
-                  </div>
-
-                  <span className={`text-xs sm:text-sm font-semibold tracking-wide mt-4 text-center transition-colors ${
-                    isHovered ? 'text-[var(--foreground)] font-bold' : 'text-[var(--muted)]'
-                  }`}>
-                    {door.title}
+                      {/* Handle */}
+                      <span className="handle">
+                        <span className="handle__lever"></span>
+                        <span className="handle__lock"></span>
+                      </span>
+                    </span>
+                    {/* Click to enter label */}
+                    <span className="click-to-enter">
+                      Click to enter
+                    </span>
+                    {/* Threshold */}
+                    <span className="sill"></span>
                   </span>
-                </div>
-
+                </button>
               </div>
             );
           })}
         </div>
 
+        {/* Mobile imfo panel */}
+        {activeDoor >= 0 && (
+          <div className="w-full max-w-md lg:hidden mt-4 p-4 rounded-2xl bg-white/95 dark:bg-neutral-900/95 border border-neutral-200 dark:border-neutral-800 shadow-xl">
+            <h3 className="text-xl font-bold mb-1 text-[var(--foreground)]">
+              {DOORS_DATA[activeDoor].title}
+            </h3>
+            <p className="text-xs font-mono uppercase text-[#a88a4b] mb-2">
+              {DOORS_DATA[activeDoor].subtitle}
+            </p>
+            <div className="space-y-1.5 border-t border-neutral-200 dark:border-neutral-800 pt-2">
+              {DOORS_DATA[activeDoor].features.map((feature, i) => (
+                <div key={i} className="flex items-center text-xs text-neutral-700 dark:text-neutral-300">
+                  <span className="mr-2 text-[#a88a4b] font-bold">
+                    ✔
+                  </span>
+                  {feature}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </main>
+
+      {/* Baseboard */}
+      <footer className="architectural-baseboard w-full relative z-30 flex-shrink-0 pointer-events-none select-none">
+        <div className="baseboard-gold-line" />
+        <div className="baseboard-upper" />
+        <div className="baseboard-main" />
+        <div className="baseboard-lower" />
+        <div className="baseboard-shadow" />
+      </footer>
+
+      {/* Scroll to top */}
+      <div className="fixed bottom-6 right-6 z-40">
+        <button type="button" onClick={() =>
+          window.scrollTo({
+            top: 0,
+            behavior: 'smooth',
+          })
+        }
+          className="w-10 h-10 rounded-full bg-neutral-950 text-white shadow-lg flex items-center justify-center hover:scale-105 active:scale-95 transition-transform"
+          title="Scroll to top"
+        >
+          <svg
+            className="w-4 h-4 fill-none stroke-current stroke-2"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M5 10l7-7m0 0l7 7m-7-7v18"
+            />
+          </svg>
+        </button>
       </div>
+
     </div>
   );
 }
