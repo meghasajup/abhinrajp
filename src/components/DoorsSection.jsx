@@ -131,7 +131,6 @@ export default function DoorsPage({ onNavigate }) {
     });
   }, [activeDoor]);
 
-
   // Door click and navigation
   const handleDoorClick = (index, e) => {
     if (e) e.stopPropagation();
@@ -139,35 +138,6 @@ export default function DoorsPage({ onNavigate }) {
     setActiveDoor(index);
     setIsPressing(true);
     setOpenedDoor(index);
-
-    // Brass latch sound
-    if (typeof window !== 'undefined') {
-      try {
-        const AudioContextClass =
-          window.AudioContext || window.webkitAudioContext;
-
-        if (AudioContextClass) {
-          const ctx = new AudioContextClass();
-          const osc = ctx.createOscillator();
-          const gain = ctx.createGain();
-          osc.type = 'sine';
-          osc.frequency.setValueAtTime(340, ctx.currentTime);
-          osc.frequency.exponentialRampToValueAtTime(
-            120,
-            ctx.currentTime + 0.14
-          );
-          gain.gain.setValueAtTime(0.18, ctx.currentTime);
-          gain.gain.exponentialRampToValueAtTime(
-            0.001,
-            ctx.currentTime + 0.2
-          );
-          osc.connect(gain);
-          gain.connect(ctx.destination);
-          osc.start();
-          osc.stop(ctx.currentTime + 0.2);
-        }
-      } catch { }
-    }
 
     // Navigate after opening animation
     setTimeout(() => {
@@ -189,13 +159,11 @@ export default function DoorsPage({ onNavigate }) {
       handleDoorClick(index, e);
     } else if (e.key === 'ArrowRight') {
       e.preventDefault();
-
       setActiveDoor((prev) =>
         prev < 0 ? 0 : (prev + 1) % DOORS_DATA.length
       );
     } else if (e.key === 'ArrowLeft') {
       e.preventDefault();
-
       setActiveDoor((prev) =>
         prev < 0
           ? DOORS_DATA.length - 1
@@ -215,7 +183,7 @@ export default function DoorsPage({ onNavigate }) {
           {"Magic happens behind the doors".split("").map(
             (letter, index) => (
               <span key={index} className="doors-heading-letter"
-                style={{ transitionDelay: `${index * 0.035}s`, }} aria-hidden="true">
+                style={{ transitionDelay: `${index * 0.035}s` }} aria-hidden="true">
                 {letter === ' ' ? '\u00A0' : letter}
               </span>
             )
@@ -223,8 +191,7 @@ export default function DoorsPage({ onNavigate }) {
         </h1>
 
         {/* Doors Row */}
-        <div ref={wallRef} role="region" aria-label="Available services" className={`relative w-full max-w-6xl flex flex-1 min-h-0 items-end justify-center gap-3 sm:gap-5 md:gap-7 lg:gap-8 pb-0 mt-auto ${activeDoor >= 0 ? 'doors-focus' : ''
-          }`} onMouseLeave={() => {
+        <div ref={wallRef} role="region" aria-label="Available services" className={`relative w-full max-w-6xl flex flex-1 min-h-0 items-end justify-center gap-3 sm:gap-5 md:gap-7 lg:gap-8 pb-0 mt-auto ${activeDoor >= 0 ? 'doors-focus' : ''}`} onMouseLeave={() => {
             if (openedDoor < 0) {
               setActiveDoor(-1);
             }
@@ -266,13 +233,13 @@ export default function DoorsPage({ onNavigate }) {
                 }}
               >
                 <button type="button" tabIndex={0} aria-label={`Open the ${door.title} door`} aria-expanded={isOpened} className="doorway" onMouseEnter={() => setActiveDoor(idx)} onFocus={() => setActiveDoor(idx)} onBlur={() => setActiveDoor(-1)} onClick={(e) => handleDoorClick(idx, e)} onKeyDown={(e) => handleKeyDown(e, idx)}>
-                  {/* Oiter arch */}
+                  {/* Outer arch */}
                   <span className="casing"></span>
                   {/* Door opening */}
                   <span className="opening">
                     <span className="room"></span>
                     {/* 3D door panel */}
-                    <span className="door" style={{ transform: isOpened ? 'rotateY(72deg)' : isHovered ? 'rotateY(16deg)' : 'rotateY(0deg)', }}>
+                    <span className="door" style={{ transform: isOpened ? 'rotateY(72deg)' : isHovered ? 'rotateY(16deg)' : 'rotateY(0deg)' }}>
                       {/* Fluted panel */}
                       <span className="door__flute"></span>
                       {/* Nameplate */}
@@ -300,7 +267,7 @@ export default function DoorsPage({ onNavigate }) {
           })}
         </div>
 
-        {/* Mobile imfo panel */}
+        {/* Mobile info panel */}
         {activeDoor >= 0 && (
           <div className="w-full max-w-md lg:hidden mt-4 p-4 rounded-2xl bg-white/95 dark:bg-neutral-900/95 border border-neutral-200 dark:border-neutral-800 shadow-xl">
             <h3 className="text-xl font-bold mb-1 text-[var(--foreground)]">

@@ -7,7 +7,7 @@ import StorySection from './components/StorySection.jsx';
 import Footer from './components/Footer.jsx';
 import MenuDrawer from './components/MenuDrawer.jsx';
 import HireModal from './components/HireModal.jsx';
-import WebDeveloperPage from './components/WebDeveloperPage.jsx';
+import AppDevelopment from './components/AppDevelopment.jsx';
 import DeveloperPage from './components/DeveloperPage.jsx';
 import BiodiversityCaseStudy from './components/BiodiversityCaseStudy.jsx';
 import ContactPage from './components/ContactPage.jsx';
@@ -113,7 +113,7 @@ export default function App() {
       case '/web-developer/':
       case '/web-developer':
         return (
-          <WebDeveloperPage 
+          <AppDevelopment 
             onNavigate={navigateTo} 
             onOpenContact={() => setIsHireModalOpen(true)} 
           />

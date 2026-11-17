@@ -1,47 +1,54 @@
 import React from 'react';
-import { ArrowLeft, ArrowRight, ExternalLink, ShieldCheck, Sparkles } from 'lucide-react';
+import { ArrowLeft, ArrowRight, ShieldCheck, Smartphone, Video } from 'lucide-react';
 
 const PROJECTS = [
   {
-    id: 'biodiversity-hotspot-explorer',
-    tag: 'Govt. Supported Platform',
-    title: 'Biodiversity Hotspot Explorer',
-    org: 'Innovation Hub, Pilikula Science Centre',
-    description: 'An interactive digital touchscreen kiosk application developed during internship at Pilikula Science Centre. Helps visitors explore biodiversity hotspots through an intuitive touchscreen interface with images, species information, and location-based navigation.',
-    caseStudyUrl: '/biodiversity-hotspot-explorer/',
-    stack: ['React', 'Node.js', 'Socket.io', 'Touchscreen Kiosk', 'Offline DB'],
-    hasCaseStudy: true
+    id: 'expense-tracker',
+    tag: 'iOS App · Finance',
+    title: 'Expense Tracker',
+    org: 'Personal finance, organised into books',
+    description: 'Spending is grouped into expense books such as Personal, Travel and Business, each with its own budget. Add income or an expense in a couple of taps, see the balance, spend and budget used at a glance, and search across every entry.',
+    caseStudyUrl: '/expense-tracker/',
+    stack: ['Budgets', 'Expense books', 'Shortcuts & Back Tap'],
+    hasCaseStudy: true,
+    meta: 'Screen recording on iPhone'
   },
   {
-    id: 'vanguard-store',
-    tag: 'E-Commerce & 3D Interactive',
-    title: 'VANGUARD Store',
-    org: 'Luxury Online Timepiece Store',
-    description: 'High-end e-commerce platform featuring immersive 3D watch previews, smooth GSAP product transitions, real-time inventory management, and high-conversion checkout flows.',
-    stack: ['Next.js 15', 'Three.js / React Three Fiber', 'Tailwind CSS', 'Stripe'],
-    hasCaseStudy: false
+    id: 'secret-vault',
+    tag: 'iOS App · Privacy',
+    title: 'Secret Vault',
+    org: 'A photo vault disguised as a calculator',
+    description: 'It looks and works like an ordinary calculator. Type your secret equation and double-tap % to open a private vault: photos you import are hidden there and can be removed from your photo library.',
+    caseStudyUrl: '/secret-vault/',
+    stack: ['Privacy', 'Equation passcode', 'Photos access'],
+    hasCaseStudy: false,
+    meta: 'Recorded on iPhone with sample photos'
   },
   {
-    id: 'cuecafe-pro',
-    tag: 'Custom Business Software',
-    title: 'CueCafe Pro',
-    org: 'Snooker Lounge & POS Management System',
-    description: 'Offline-first hybrid desktop and web management platform for cue sports lounges. Features automated table lighting timers, real-time POS billing, food & beverage inventory, and analytics.',
-    stack: ['Electron', 'SQLite', 'React', 'Node.js', 'Thermal Printing'],
-    hasCaseStudy: false
+    id: 'brick-breaker',
+    tag: 'iOS Game · Arcade',
+    title: 'Brick Breaker',
+    org: 'Arcade game with pixel-art levels',
+    description: 'A fast arcade brick breaker: pixel-art levels, multi-ball power-ups that flood the screen, combos and a live score, with a pause menu and level-by-level progression.',
+    caseStudyUrl: '/brick-breaker/',
+    stack: ['Game design', 'Power-ups', 'Level design'],
+    hasCaseStudy: false,
+    meta: 'Gameplay recorded on iPhone'
   },
   {
-    id: 'uae-business-website',
-    tag: 'International Client Project',
-    title: 'UAE Business Website',
-    org: 'Corporate Web Presence · analystuae.com',
-    description: 'Modern, high-performance corporate web platform engineered for a premier UAE-based business consultancy. Built with ultra-fast page speed, responsive multilingual layout, and custom lead generation.',
-    stack: ['Next.js', 'Tailwind CSS', 'Framer Motion', 'SEO Architecture'],
-    hasCaseStudy: false
+    id: 'dice',
+    tag: 'iOS App · Utility',
+    title: 'Dice',
+    org: 'A colourful dice roller',
+    description: 'Roll several dice at once: each die fills its own block of colour and the total updates instantly, so a board-game night needs nothing but a phone.',
+    caseStudyUrl: '/dice/',
+    stack: ['Utility', 'Minimal UI', 'Tap to roll'],
+    hasCaseStudy: false,
+    meta: 'Screen recording on iPhone'
   }
 ];
 
-export default function WebDeveloperPage({ onNavigate, onOpenContact }) {
+export default function AppDeveloperPage({ onNavigate, onOpenContact }) {
   return (
     <div className="min-h-screen pt-28 pb-20 px-4 sm:px-8 md:px-14 max-w-[88rem] mx-auto animate-fadeIn">
       {/* Back to doors button */}
@@ -58,10 +65,10 @@ export default function WebDeveloperPage({ onNavigate, onOpenContact }) {
       {/* Page Header */}
       <div className="max-w-3xl mb-16">
         <h1 className="text-4xl sm:text-6xl md:text-7xl font-extrabold tracking-tight text-foreground mb-4">
-          Web Development
+          App Development
         </h1>
         <p className="text-lg sm:text-xl text-foreground/75 leading-relaxed font-normal">
-          Websites, landing pages and interactive tools, built end to end: from layout and interaction to responsive front-end, SEO and launch.
+          iOS apps and games, designed and built end to end: from the first screen and the small interactions to the delicate math that keep an app feel at home on iPhone.
         </p>
       </div>
 
@@ -102,6 +109,12 @@ export default function WebDeveloperPage({ onNavigate, onOpenContact }) {
                   {item}
                 </span>
               ))}
+            </div>
+
+            {/* Video / Screen Recording Note */}
+            <div className="flex items-center gap-2 mb-8 text-xs font-mono text-muted">
+              <Video className="w-4 h-4 text-accent" />
+              <span>{project.meta}</span>
             </div>
 
             {/* Case Study Link */}
