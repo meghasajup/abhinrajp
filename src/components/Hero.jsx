@@ -24,15 +24,11 @@ export default function Hero({
 
   // Page Flip control
   const flipToNext = useCallback(() => {
-    setIsFlipping((flipping) => {
-      if (flipping) {
-        return flipping;
-      }
-      return true;
-    });
-  }, []);
+    if (isFlipping) return;
+    setIsFlipping(true);
+  }, [isFlipping]);
 
-  // Automatic page flip
+  // Automatic page flip timer
   useEffect(() => {
     const timer = setInterval(() => {
       flipToNext();
@@ -40,15 +36,13 @@ export default function Hero({
     return () => clearInterval(timer);
   }, [flipToNext]);
 
-  // Page flip completion
+  // Page flip completion handler
   const handlePageTurnComplete = () => {
-    setRoleIndex((prev) => {
-      return (prev + 1) % ROLES.length;
-    });
+    setRoleIndex((prev) => (prev + 1) % ROLES.length);
     setIsFlipping(false);
   };
 
-  // Mouse Interaction 
+  // Mouse Interaction for Portrait Spotlight
   const handleMouseMove = (e) => {
     const rect = e.currentTarget.getBoundingClientRect();
     setMousePosition({
@@ -64,7 +58,6 @@ export default function Hero({
     });
   };
 
-  // Render
   return (
     <section id="home" className="relative min-h-screen flex flex-col justify-between pt-36 sm:pt-40 pb-8 px-5 sm:px-8 overflow-hidden bg-[var(--background)] text-[var(--foreground)] rounded-b-[40px] sm:rounded-b-[60px] shadow-[0_20px_40px_rgba(0,0,0,0.06)]">
       {/* Main hero container */}
@@ -87,62 +80,54 @@ export default function Hero({
             I am a
           </h2>
 
-          {/* Notebook calender */}
           <div className="calendar-container relative cursor-pointer select-none w-full max-w-[440px] my-3" onClick={flipToNext} title="Click to turn page">
             {/* Floating Shadow */}
-            <div className="absolute inset-x-2 -bottom-2.5 h-10 bg-[var(--calendar-shadow)] rounded-[20px] blur-md rotate-[-3.5deg] pointer-events-none" />
-            {/* Paper Stack */}
-            <div className="absolute inset-x-2 bottom-[-6px] h-10 rounded-2xl bg-[var(--calendar-layer-2)] rotate-[-2.5deg] pointer-events-none" />
-            <div className="absolute inset-x-1 bottom-[-3px] h-8 rounded-2xl bg-[var(--calendar-layer-1)] rotate-[-1.5deg] pointer-events-none" />
+            <div className="absolute inset-x-2 -bottom-2.5 h-10 bg-black/10 dark:bg-black/40 rounded-[20px] blur-md rotate-[-3.5deg] pointer-events-none" />
+            {/* Paper Stack Layers */}
+            <div className="absolute inset-x-2 bottom-[-6px] h-10 rounded-2xl bg-neutral-200 dark:bg-neutral-800 rotate-[-2.5deg] pointer-events-none" />
+            <div className="absolute inset-x-1 bottom-[-3px] h-8 rounded-2xl bg-neutral-100 dark:bg-neutral-700 rotate-[-1.5deg] pointer-events-none" />
+
             {/* Page Stage */}
             <div className="calendar-page-stage relative">
-              {/* Next page */}
-              <div className="calendar-next-page absolute inset-0 rounded-2xl bg-[var(--calendar-bg)] border border-[var(--calendar-border)] px-5 sm:px-6 pt-4 pb-3 shadow-sm flex flex-col justify-between">
-                <span className="text-[clamp(22px,2.8vw,34px)] font-black tracking-[-0.04em] text-[var(--calendar-text)] whitespace-nowrap overflow-hidden text-ellipsis">
+
+              {/* Next page (Static underneath) */}
+              <div className="calendar-next-page absolute inset-0 rounded-2xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 px-5 sm:px-6 pt-4 pb-3 shadow-sm flex flex-col justify-between">
+                <span className="text-[clamp(22px,2.8vw,34px)] font-black tracking-[-0.04em] text-neutral-900 dark:text-white whitespace-nowrap overflow-hidden text-ellipsis">
                   {nextRole.title}
                 </span>
-                <span className="self-end text-[10px] font-mono font-semibold tracking-widest text-[var(--calendar-num)]">
+                <span className="self-end text-[10px] font-mono font-semibold tracking-widest text-neutral-400">
                   {nextRole.num}
                 </span>
               </div>
-              
+
               {/* Current flipping page */}
-              <div 
-                key={roleIndex} 
+              <div
+                key={roleIndex}
                 onAnimationEnd={(e) => {
                   if (e.target === e.currentTarget && isFlipping) {
                     handlePageTurnComplete();
                   }
-                }}
-                className={`calendar-current-page ${isFlipping ? "calendar-page-turning" : ""}`}
-              >
+                }} className={`calendar-current-page ${isFlipping ? "calendar-page-turning" : ""}`}>
                 {/* Front Side */}
-                <div className="calendar-paper-front rounded-2xl bg-[var(--calendar-bg)] border border-[var(--calendar-border)] px-5 sm:px-6 pt-4 pb-3 flex flex-col justify-between">
-                  <span className="text-[clamp(22px,2.8vw,34px)] font-black tracking-[-0.04em] text-[var(--calendar-text)] whitespace-nowrap overflow-hidden text-ellipsis">
+                <div className="calendar-paper-front rounded-2xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 px-5 sm:px-6 pt-4 pb-3 flex flex-col justify-between">
+                  <span className="text-[clamp(22px,2.8vw,34px)] font-black tracking-[-0.04em] text-neutral-900 dark:text-white whitespace-nowrap overflow-hidden text-ellipsis">
                     {currentRole.title}
                   </span>
-                  <span className="self-end text-[10px] font-mono font-semibold tracking-widest text-[var(--calendar-num)]">
+                  <span className="self-end text-[10px] font-mono font-semibold tracking-widest text-neutral-400">
                     {currentRole.num}
                   </span>
                 </div>
-                
+
                 {/* Back Side */}
-                <div className="calendar-paper-back rounded-2xl bg-[var(--calendar-bg)] border border-[var(--calendar-border)] px-5 sm:px-6 pt-4 pb-3 flex flex-col justify-between">
-                  <span className="text-[clamp(22px,2.8vw,34px)] font-black tracking-[-0.04em] text-[var(--calendar-text)] whitespace-nowrap overflow-hidden text-ellipsis">
-                    {nextRole.title}
-                  </span>
-                  <span className="self-end text-[10px] font-mono font-semibold tracking-widest text-[var(--calendar-num)]">
-                    {nextRole.num}
-                  </span>
-                </div>
+                <div className="calendar-paper-back rounded-2xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 px-5 sm:px-6 pt-4 pb-3 flex flex-col justify-between" />
               </div>
 
               {/* Spiral rings */}
               <div className="calendar-spiral absolute -top-3 left-4 right-4 flex justify-between items-center px-1 pointer-events-none z-30">
                 {Array.from({ length: 13 }).map((_, i) => (
                   <div key={i} className="flex flex-col items-center">
-                    <div className="w-1.5 sm:w-2 h-3.5 sm:h-4 rounded-full bg-[var(--spiral-ring)] shadow-[0_3px_5px_rgba(0,0,0,0.4)] border border-neutral-400/60" />
-                    <div className="w-1.5 h-1.5 rounded-full bg-[var(--spiral-dot)] -mt-1" />
+                    <div className="w-1.5 sm:w-2 h-3.5 sm:h-4 rounded-full bg-neutral-300 dark:bg-neutral-600 shadow-[0_3px_5px_rgba(0,0,0,0.4)] border border-neutral-400/60" />
+                    <div className="w-1.5 h-1.5 rounded-full bg-neutral-500 -mt-1" />
                   </div>
                 ))}
               </div>
@@ -222,8 +207,7 @@ export default function Hero({
 
         <div className="flex items-center gap-1.5 hover:text-[var(--foreground)] transition-colors">
           <span>SCROLL TO EXPLORE</span>
-          <ChevronDown
-            className="w-3.5 h-3.5 animate-bounce" />
+          <ChevronDown className="w-3.5 h-3.5 animate-bounce" />
         </div>
       </div>
 
