@@ -75,19 +75,19 @@ export default function Header({
   const navLinks = [
     { label: 'Home', target: '#home', route: '/' },
     {
-      label: 'Web Development',
-      target: '/web-developer/',
-      route: '/web-developer/'
-    },
-    {
       label: 'App Development',
-      target: '/developer/',
-      route: '/developer/'
+      target: '#door',
+      // route: '/app-developer/'
     },
     {
       label: 'UI/UX Design',
-      target: '#works',
-      route: '/web-developer/'
+      target: '#door',
+      // route: '/ui-ux/'
+    },
+    {
+      label: 'App Deployment',
+      target: '#door',
+      // route: '/app-deployment/'
     },
     {
       label: 'My story',

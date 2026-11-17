@@ -3,29 +3,12 @@ import '../styles/DoorPage.css';
 
 export const DOORS_DATA = [
   {
-    id: 'web-developer',
-    title: 'Web Development',
-    plateTop: 'WEB',
-    plateBottom: 'DEVELOPER',
-    color: '#22304a',
-    colorDark: '#1c2840',
-    route: '/web-developer/',
-    subtitle: 'End to end, from sketch to live site',
-    features: [
-      'Discovery & planning',
-      'UX & visual design',
-      'Front-end & back-end development',
-      'Technical SEO & performance',
-      'Analytics, launch & ongoing support',
-    ],
-  },
-  {
     id: 'app-developer',
     title: 'App Development',
     plateTop: 'APP',
     plateBottom: 'DEVELOPER',
-    color: '#4a3540',
-    colorDark: '#3f2d37',
+    color: '#22304a',
+    colorDark: '#1c2840',
     route: '/app-developer/',
     subtitle: 'From the first idea to the app store',
     features: [
@@ -41,9 +24,9 @@ export const DOORS_DATA = [
     title: 'UI/UX Design',
     plateTop: 'UI/UX',
     plateBottom: 'DESIGNER',
-    color: '#7a8670',
-    colorDark: '#66705d',
-    route: '/ui-ux-designer/',
+    color: '#4a3540',
+    colorDark: '#3f2d37',
+    route: '/ui-ux/',
     subtitle: 'Research first, pixels second',
     features: [
       'Brand & business needs analysis',
@@ -53,15 +36,29 @@ export const DOORS_DATA = [
       'Interactive prototypes & testing',
     ],
   },
+  {
+    id: 'app-deployment',
+    title: 'App Deployment',
+    plateTop: 'APP',
+    plateBottom: 'DEPLOYMENT',
+    color: '#7a8670',
+    colorDark: '#66705d',
+    route: '/app-deployment/',
+    subtitle: 'From local build to app stores & cloud',
+    features: [
+      'Google Play & App Store publishing',
+      'CI/CD pipeline configuration',
+      'App signing & provisioning profiles',
+      'Crash reporting & performance monitoring',
+      'Post-launch maintenance & updates',
+    ],
+  },
 ];
 
 export default function DoorsPage({ onNavigate }) {
   const [activeDoor, setActiveDoor] = useState(-1);
   const [openedDoor, setOpenedDoor] = useState(-1);
   const [isPressing, setIsPressing] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(false);
-  const [isPulling, setIsPulling] = useState(false);
-  const [currentTime, setCurrentTime] = useState('');
 
   // Heading animation
   const [headingVisible, setHeadingVisible] = useState(false);
@@ -176,7 +173,7 @@ export default function DoorsPage({ onNavigate }) {
 
   // Render
   return (
-    <div className="relative h-screen max-h-screen bg-[var(--background)] text-[var(--foreground)] flex flex-col overflow-hidden select-none transition-colors duration-500 m-0 p-0">
+    <div id="door" className="relative h-screen max-h-screen bg-[var(--background)] text-[var(--foreground)] flex flex-col overflow-hidden select-none transition-colors duration-500 m-0 p-0">
       <main className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 md:px-8 pt-6 sm:pt-8 pb-0 flex flex-col flex-1 min-h-0 items-center">
         {/* Heading */}
         <h1 ref={headingRef} className={`doors-heading ${headingVisible ? 'doors-heading-visible' : ''}`} aria-label="Magic happens behind the doors">

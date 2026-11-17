@@ -110,8 +110,8 @@ export default function App() {
 
   const renderCurrentPage = () => {
     switch (currentRoute) {
-      case '/web-developer/':
-      case '/web-developer':
+      case '/app-developer/':
+      case '/app-developer':
         return (
           <AppDevelopment 
             onNavigate={navigateTo} 

@@ -4,7 +4,7 @@ import abhin from "/images/abhin.png";
 
 const ROLES = [
   { title: "Mobile App Developer", num: "01 / 03" },
-  { title: "UI/UX Developer", num: "02 / 03" },
+  { title: "UI/UX DESIGNER", num: "02 / 03" },
   { title: "App Deployment", num: "03 / 03" },
 ];
 

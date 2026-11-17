@@ -1,159 +1,432 @@
-import React from 'react';
-import { ArrowLeft, ArrowRight, ShieldCheck, Smartphone, Video } from 'lucide-react';
+
+import React, { useRef, useState, useEffect } from 'react';
+import { ArrowLeft, ArrowRight, ArrowUp } from 'lucide-react';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+// Register ScrollTrigger safely
+if (typeof window !== 'undefined') {
+  gsap.registerPlugin(ScrollTrigger);
+}
 
 const PROJECTS = [
   {
     id: 'expense-tracker',
-    tag: 'iOS App · Finance',
+    num: '01 / 04',
     title: 'Expense Tracker',
-    org: 'Personal finance, organised into books',
-    description: 'Spending is grouped into expense books such as Personal, Travel and Business, each with its own budget. Add income or an expense in a couple of taps, see the balance, spend and budget used at a glance, and search across every entry.',
-    caseStudyUrl: '/expense-tracker/',
-    stack: ['Budgets', 'Expense books', 'Shortcuts & Back Tap'],
-    hasCaseStudy: true,
-    meta: 'Screen recording on iPhone'
+    category: 'IOS APP · FINANCE',
+    categoryFull: 'Personal Finance Application',
+    subtitle: 'Personal finance, organised into books',
+    description:
+      'Spending is grouped into expense books such as Personal, Travel and Business, each with its own budget. Add income or an expense in a couple of taps, see the balance, spend and budget used at a glance, and search across every entry.',
+    tags: ['Budgets', 'Expense books', 'Shortcuts & Back Tap'],
+    techStack: ['React Native', 'Node.js', 'Express', 'MongoDB', 'Financial Analytics'],
+    badge: 'Screen recording on iPhone',
+    iconUrl: '/images/apps/icon-expense-tracker.png',
+    phoneUrl: '/images/apps/phone-expense-tracker.png',
+    reverse: false,
   },
   {
     id: 'secret-vault',
-    tag: 'iOS App · Privacy',
+    num: '02 / 04',
     title: 'Secret Vault',
-    org: 'A photo vault disguised as a calculator',
-    description: 'It looks and works like an ordinary calculator. Type your secret equation and double-tap % to open a private vault: photos you import are hidden there and can be removed from your photo library.',
-    caseStudyUrl: '/secret-vault/',
-    stack: ['Privacy', 'Equation passcode', 'Photos access'],
-    hasCaseStudy: false,
-    meta: 'Recorded on iPhone with sample photos'
+    category: 'IOS APP · PRIVACY',
+    categoryFull: 'Privacy & Security Application',
+    subtitle: 'A photo vault disguised as a calculator',
+    description:
+      'It looks and works like an ordinary calculator. Type your secret equation and double-tap % to open a private vault; photos you import are hidden there and can be removed from your photo library.',
+    tags: ['Privacy', 'Equation passcode', 'Photos access'],
+    techStack: ['React Native', 'Secure Storage', 'Authentication', 'Encryption', 'SQLite'],
+    badge: 'Recorded on iPhone with sample photos',
+    iconUrl: '/images/apps/icon-secret-vault.png',
+    phoneUrl: '/images/apps/phone-secret-vault.png',
+    reverse: true,
   },
   {
     id: 'brick-breaker',
-    tag: 'iOS Game · Arcade',
+    num: '03 / 04',
     title: 'Brick Breaker',
-    org: 'Arcade game with pixel-art levels',
-    description: 'A fast arcade brick breaker: pixel-art levels, multi-ball power-ups that flood the screen, combos and a live score, with a pause menu and level-by-level progression.',
-    caseStudyUrl: '/brick-breaker/',
-    stack: ['Game design', 'Power-ups', 'Level design'],
-    hasCaseStudy: false,
-    meta: 'Gameplay recorded on iPhone'
+    category: 'IOS GAME · ARCADE',
+    categoryFull: 'Interactive Mobile Game',
+    subtitle: 'Arcade game with pixel-art levels',
+    description:
+      'A fast arcade brick breaker: pixel-art levels, multi-ball power-ups that flood the screen, combos and a live score, with a pause menu and level-by-level progression.',
+    tags: ['Game design', 'Power-ups', 'Level design'],
+    techStack: ['React Native', 'JavaScript', 'Game Logic', 'Animations', 'Touch Controls'],
+    badge: 'Gameplay recorded on iPhone',
+    iconUrl: '/images/apps/icon-brick-breaker.png',
+    phoneUrl: '/images/apps/phone-brick-breaker.png',
+    reverse: false,
   },
   {
     id: 'dice',
-    tag: 'iOS App · Utility',
+    num: '04 / 04',
     title: 'Dice',
-    org: 'A colourful dice roller',
-    description: 'Roll several dice at once: each die fills its own block of colour and the total updates instantly, so a board-game night needs nothing but a phone.',
-    caseStudyUrl: '/dice/',
-    stack: ['Utility', 'Minimal UI', 'Tap to roll'],
-    hasCaseStudy: false,
-    meta: 'Screen recording on iPhone'
-  }
+    category: 'IOS APP · UTILITY',
+    categoryFull: 'Interactive Utility Application',
+    subtitle: 'A colourful dice roller',
+    description:
+      'Roll several dice at once: each die fits its own block of colour and the total updates instantly, so a board-game night needs nothing but a phone.',
+    tags: ['Utility', 'Minimal UI', 'Tap to roll'],
+    techStack: ['React Native', 'JavaScript', 'Animation', 'Randomization', 'Mobile UI'],
+    badge: 'Screen recording on iPhone',
+    iconUrl: '/images/apps/icon-dice.png',
+    phoneUrl: '/images/apps/phone-dice.png',
+    reverse: true,
+  },
 ];
 
-export default function AppDeveloperPage({ onNavigate, onOpenContact }) {
+export default function AppDeveloperPage({
+  onNavigate = () => { },
+  onOpenContact = () => { },
+}) {
+  const containerRef = useRef(null);
+  const cardsContainerRef = useRef(null);
+  const cardRefs = useRef([]);
+  const overlayRefs = useRef([]);
+
+  const [showScrollTop, setShowScrollTop] = useState(false);
+
+  // Always start this page from the top when opened
+  useEffect(() => {
+    const root = document.documentElement;
+    const previousBehavior = root.style.scrollBehavior;
+
+    root.style.scrollBehavior = 'auto';
+
+    window.scrollTo({
+      top: 0,
+      left: 0,
+      behavior: 'instant',
+    });
+
+    requestAnimationFrame(() => {
+      root.style.scrollBehavior = previousBehavior;
+    });
+  }, []);
+
+  // Scroll to top button visibility
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowScrollTop(window.scrollY > 400);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
+
+  // GSAP Stacked Card Animations
+  useEffect(() => {
+    if (!cardsContainerRef.current) return;
+
+    const ctx = gsap.context(() => {
+      const cards = cardRefs.current.filter(Boolean);
+      const overlays = overlayRefs.current.filter(Boolean);
+      const totalCards = cards.length;
+
+      if (totalCards <= 1) return;
+
+      const mm = gsap.matchMedia();
+
+      // Desktop and Tablet
+      mm.add('(min-width: 768px)', () => {
+        cards.forEach((card, i) => {
+          gsap.set(card, {
+            transformOrigin: 'top center',
+            force3D: true,
+          });
+
+          if (i > 0) {
+            gsap.set(card, {
+              yPercent: 120,
+              opacity: 1,
+            });
+          } else {
+            gsap.set(card, {
+              yPercent: 0,
+              scale: 1,
+              y: 0,
+            });
+          }
+        });
+
+        const tl = gsap.timeline({
+          scrollTrigger: {
+            trigger: cardsContainerRef.current,
+            start: 'top top+=110',
+            end: () =>
+              `+=${window.innerHeight * (totalCards - 1) * 1.15}`,
+            pin: true,
+            scrub: 0.8,
+            anticipatePin: 1,
+            invalidateOnRefresh: true,
+          },
+        });
+
+        for (let i = 1; i < totalCards; i++) {
+          const stepLabel = `step-${i}`;
+
+          tl.to(
+            cards[i],
+            {
+              yPercent: 0,
+              ease: 'power1.inOut',
+              duration: 1,
+            },
+            stepLabel
+          );
+
+          for (let p = 0; p < i; p++) {
+            const depth = i - p;
+            const targetScale = Math.max(0.86, 1 - depth * 0.045);
+            const targetY = -depth * 15;
+            const targetOverlay = Math.min(0.48, depth * 0.16);
+
+            tl.to(
+              cards[p],
+              {
+                scale: targetScale,
+                y: targetY,
+                ease: 'power1.inOut',
+                duration: 1,
+              },
+              stepLabel
+            );
+
+            if (overlays[p]) {
+              tl.to(
+                overlays[p],
+                {
+                  opacity: targetOverlay,
+                  ease: 'power1.inOut',
+                  duration: 1,
+                },
+                stepLabel
+              );
+            }
+          }
+        }
+      });
+
+      // Mobile
+      mm.add('(max-width: 767px)', () => {
+        cards.forEach((card, i) => {
+          gsap.set(card, {
+            transformOrigin: 'top center',
+            force3D: true,
+          });
+
+          if (i > 0) {
+            gsap.set(card, { yPercent: 115 });
+          }
+        });
+
+        const tlMobile = gsap.timeline({
+          scrollTrigger: {
+            trigger: cardsContainerRef.current,
+            start: 'top top+=90',
+            end: () =>
+              `+=${window.innerHeight * (totalCards - 1) * 1.0}`,
+            pin: true,
+            scrub: 0.6,
+            anticipatePin: 1,
+            invalidateOnRefresh: true,
+          },
+        });
+
+        for (let i = 1; i < totalCards; i++) {
+          const stepLabel = `mob-step-${i}`;
+
+          tlMobile.to(
+            cards[i],
+            {
+              yPercent: 0,
+              ease: 'power1.inOut',
+              duration: 1,
+            },
+            stepLabel
+          );
+
+          for (let p = 0; p < i; p++) {
+            const depth = i - p;
+
+            tlMobile.to(
+              cards[p],
+              {
+                scale: Math.max(0.9, 1 - depth * 0.035),
+                y: -depth * 10,
+                ease: 'power1.inOut',
+                duration: 1,
+              },
+              stepLabel
+            );
+
+            if (overlays[p]) {
+              tlMobile.to(
+                overlays[p],
+                {
+                  opacity: Math.min(0.4, depth * 0.14),
+                  ease: 'power1.inOut',
+                  duration: 1,
+                },
+                stepLabel
+              );
+            }
+          }
+        }
+      });
+    }, containerRef);
+
+    const timer = setTimeout(() => {
+      ScrollTrigger.refresh();
+    }, 300);
+
+    const handleWindowLoad = () => {
+      ScrollTrigger.refresh();
+    };
+
+    window.addEventListener('load', handleWindowLoad);
+
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('load', handleWindowLoad);
+      ctx.revert();
+    };
+  }, []);
+
   return (
-    <div className="min-h-screen pt-28 pb-20 px-4 sm:px-8 md:px-14 max-w-[88rem] mx-auto animate-fadeIn">
+    <div ref={containerRef} className="min-h-screen pt-24 sm:pt-28 pb-20 px-4 sm:px-8 md:px-12 max-w-[84rem] mx-auto animate-fadeIn relative">
       {/* Back to doors button */}
       <div className="mb-8">
-        <button
-          onClick={() => onNavigate('#works')}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-pill text-xs font-mono font-medium hover:text-accent transition-colors cursor-pointer"
-        >
+        <button onClick={() => onNavigate('#works')} className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-pill text-xs font-mono font-medium hover:text-accent transition-colors cursor-pointer">
           <ArrowLeft className="w-3.5 h-3.5" />
           <span>Back to the doors</span>
         </button>
       </div>
 
       {/* Page Header */}
-      <div className="max-w-3xl mb-16">
+      <div className="max-w-3xl mb-12 sm:mb-16">
         <h1 className="text-4xl sm:text-6xl md:text-7xl font-extrabold tracking-tight text-foreground mb-4">
           App Development
         </h1>
+
         <p className="text-lg sm:text-xl text-foreground/75 leading-relaxed font-normal">
-          iOS apps and games, designed and built end to end: from the first screen and the small interactions to the delicate math that keep an app feel at home on iPhone.
+          iOS apps and games, designed and built end to end: from the first screen and the small interactions to the details that make an app feel at home on iPhone.
         </p>
       </div>
 
-      {/* Projects Grid */}
-      <div className="space-y-12 mb-24">
-        {PROJECTS.map((project, idx) => (
-          <article
-            key={project.id}
-            className="glass-pill rounded-[32px] p-8 sm:p-12 border border-white/60 dark:border-white/10 shadow-xl transition-all duration-300 hover:border-accent/40"
-          >
-            <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-              <span className="px-3.5 py-1 rounded-full text-xs font-mono font-semibold bg-accent/15 text-accent border border-accent/25 uppercase tracking-wider">
-                {project.tag}
-              </span>
-              <span className="text-xs font-mono text-muted">
-                0{idx + 1} / 0{PROJECTS.length}
-              </span>
-            </div>
+      {/* Stacked Cards Section */}
+      <div
+        ref={cardsContainerRef} className="relative w-full h-[640px] sm:h-[660px] lg:h-[680px] mb-20 overflow-visible">
+        {PROJECTS.map((project, idx) => {
+          const zIndex = 10 * (idx + 1);
 
-            <h2 className="text-2xl sm:text-4xl font-extrabold text-foreground tracking-tight mb-1">
-              {project.title}
-            </h2>
-            <p className="text-xs sm:text-sm font-mono text-accent font-medium mb-6">
-              {project.org}
-            </p>
+          return (
+            <article key={project.id} ref={(el) => (cardRefs.current[idx] = el)} style={{ zIndex }} className="absolute inset-0 w-full h-full rounded-[32px] sm:rounded-[36px] bg-[#f5f3ee] dark:bg-[#1a1818] border border-black/[0.08] dark:border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.08)] dark:shadow-[0_25px_50px_rgba(0,0,0,0.5)] p-6 sm:p-10 lg:p-12 overflow-hidden flex flex-col justify-between select-none">
+              {/* Dimming overlay */}
+              <div ref={(el) => (overlayRefs.current[idx] = el)} className="absolute inset-0 rounded-[32px] sm:rounded-[36px] bg-black pointer-events-none opacity-0 z-20 transition-opacity"/>
+              {/* Two Column Layout */}
+              <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 items-center gap-6 lg:gap-10 h-full">
+                {/* Text Content Column */}
+                <div className={`flex flex-col justify-between h-full ${project.reverse
+                    ? 'lg:col-span-7 lg:order-2'
+                    : 'lg:col-span-7 lg:order-1'
+                    }`}>
+                  <div>
+                    {/* App Icon + Category + Number */}
+                    <div className="flex items-center justify-between gap-3 mb-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl overflow-hidden shadow-sm flex-shrink-0 bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/10">
+                          <img
+                            src={project.iconUrl}
+                            onError={(e) => {
+                              if (!e.target.dataset.triedFallback) {
+                                e.target.dataset.triedFallback = 'true';
+                                e.target.src = '.' + project.iconUrl;
+                              }
+                            }} alt={`${project.title} icon`} className="w-full h-full object-cover" loading="eager"
+                          />
+                        </div>
 
-            <p className="text-base sm:text-lg text-foreground/80 leading-relaxed max-w-4xl mb-8">
-              {project.description}
-            </p>
+                        <span className="text-xs font-mono font-semibold tracking-wider text-foreground/60 dark:text-foreground/50 uppercase">
+                          {project.category}
+                        </span>
+                      </div>
 
-            {/* Stack Tags */}
-            <div className="flex flex-wrap gap-2 mb-8">
-              {project.stack.map((item) => (
-                <span 
-                  key={item} 
-                  className="px-3 py-1 rounded-lg text-xs font-mono bg-black/5 dark:bg-white/5 text-foreground/70 border border-black/5 dark:border-white/5"
-                >
-                  {item}
-                </span>
-              ))}
-            </div>
+                      <span className="text-xs font-mono text-muted">
+                        {project.num}
+                      </span>
+                    </div>
 
-            {/* Video / Screen Recording Note */}
-            <div className="flex items-center gap-2 mb-8 text-xs font-mono text-muted">
-              <Video className="w-4 h-4 text-accent" />
-              <span>{project.meta}</span>
-            </div>
+                    {/* Title */}
+                    <h2 className="text-2xl sm:text-4xl lg:text-5xl font-extrabold text-foreground tracking-tight mb-2">
+                      {project.title}
+                    </h2>
 
-            {/* Case Study Link */}
-            {project.hasCaseStudy ? (
-              <button
-                onClick={() => onNavigate(project.caseStudyUrl)}
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[#111111] text-[#f8f6f2] dark:bg-[#f8f6f2] dark:text-[#111111] text-xs sm:text-sm font-semibold tracking-wide hover:scale-105 active:scale-95 transition-all shadow-md cursor-pointer"
-              >
-                <span>Explore Case Study</span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
-            ) : (
-              <div className="inline-flex items-center gap-2 text-xs font-mono text-muted">
-                <ShieldCheck className="w-4 h-4 text-emerald-500" />
-                <span>Production Project · Live Deployment</span>
+                    {/* Subtitle */}
+                    <p className="text-xs sm:text-sm font-mono text-accent font-medium mb-4 sm:mb-6">
+                      {project.subtitle}
+                    </p>
+
+                    {/* Description */}
+                    <p className="text-sm sm:text-base text-foreground/80 dark:text-foreground/75 leading-relaxed max-w-xl mb-6">
+                      {project.description}
+                    </p>
+
+                    {/* Tags */}
+                    <div className="flex flex-wrap gap-2 mb-6">
+                      {project.tags.map((tag) => (
+                        <span key={tag} className="px-3.5 py-1.5 rounded-full text-xs font-mono bg-black/5 dark:bg-white/5 text-foreground/75 dark:text-foreground/70 border border-black/5 dark:border-white/5">
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Device / Recording Status Badge */}
+                  <div className="flex items-center gap-2 pt-2 text-xs font-mono text-muted">
+                    <span className="w-2 h-2 rounded-full bg-foreground/35 dark:bg-foreground/45 inline-block" />
+                    <span>{project.badge}</span>
+                  </div>
+                </div>
+
+                {/* Phone Mockup Column */}
+                <div
+                  className={`relative flex items-center justify-center select-none ${project.reverse
+                    ? 'lg:col-span-5 lg:order-1'
+                    : 'lg:col-span-5 lg:order-2'
+                    }`}>
+                  <div className="relative w-[220px] sm:w-[250px] lg:w-[270px] drop-shadow-[0_20px_35px_rgba(0,0,0,0.18)] dark:drop-shadow-[0_25px_40px_rgba(0,0,0,0.65)]">
+                    <img
+                      src={project.phoneUrl}
+                      onError={(e) => {
+                        if (!e.target.dataset.triedFallback) {
+                          e.target.dataset.triedFallback = 'true';
+                          e.target.src = '.' + project.phoneUrl;
+                        }
+                      }} alt={`${project.title} preview`} className="w-full h-auto object-contain select-none pointer-events-none" loading="eager" onLoad={() => ScrollTrigger.refresh()}
+                    />
+                  </div>
+                </div>
               </div>
-            )}
-          </article>
-        ))}
+            </article>
+          );
+        })}
       </div>
 
-      {/* Got a project banner */}
-      <div className="glass-pill rounded-[32px] p-8 sm:p-14 text-center border border-accent/30 shadow-2xl flex flex-col items-center">
-        <span className="text-xs font-mono tracking-widest text-accent font-bold uppercase mb-2">
-          Available for new work
-        </span>
-        <h2 className="text-3xl sm:text-5xl font-extrabold text-foreground tracking-tight mb-4 max-w-xl">
-          Got a project? <span className="font-cursive italic font-normal">Let's build it together.</span>
-        </h2>
-        <p className="max-w-xl text-base text-foreground/75 leading-relaxed mb-8">
-          I'm taking on new freelance work: websites, apps, interfaces and visual content. Tell me what you're building and I'll get back to you within a day.
-        </p>
-        <button
-          onClick={onOpenContact}
-          className="px-8 py-4 rounded-full bg-[#111111] text-[#f8f6f2] dark:bg-[#f8f6f2] dark:text-[#111111] text-sm sm:text-base font-semibold tracking-wide hover:scale-105 active:scale-95 transition-all shadow-xl cursor-pointer"
-        >
-          Start a project
-        </button>
-      </div>
+      {/* Floating Scroll to Top Button */}
+      <button
+        onClick={() =>
+          window.scrollTo({ top: 0, behavior: 'smooth' })
+        } className={`fixed bottom-6 right-6 z-40 w-11 h-11 rounded-full bg-[#111111] text-white dark:bg-[#f8f6f2] dark:text-[#111111] shadow-2xl flex items-center justify-center transition-all duration-300 cursor-pointer hover:scale-110 active:scale-95 ${showScrollTop
+          ? 'opacity-100 translate-y-0'
+          : 'opacity-0 translate-y-4 pointer-events-none'
+          }`} title="Scroll to top" aria-label="Scroll to top">
+        <ArrowUp className="w-4 h-4" />
+      </button>
     </div>
   );
 }
