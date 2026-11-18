@@ -150,7 +150,7 @@ export default function Hero({
             </button>
 
             {/* See My Work */}
-            <button onClick={() => onNavigate("#works")} className="glass-pill px-6 py-3 rounded-full font-medium text-sm text-[var(--foreground)] transition-all duration-300 hover:scale-[1.04] active:scale-[0.97] cursor-pointer">
+            <button onClick={() => onNavigate("#doors")} className="glass-pill px-6 py-3 rounded-full font-medium text-sm text-[var(--foreground)] transition-all duration-300 hover:scale-[1.04] active:scale-[0.97] cursor-pointer">
               See my work
             </button>
           </div>

@@ -144,10 +144,7 @@ export default function Header({
     <header className="fixed top-4 sm:top-6 left-0 right-0 z-40 flex items-center justify-center px-4 pointer-events-none transition-all duration-300">
       <div className="flex items-center gap-2 sm:gap-3 pointer-events-auto">
         {/* Desktop Navigation - Always Visible */}
-        <nav
-          className="glass-pill hidden md:flex items-center gap-1 p-1.5 rounded-full"
-          aria-label="Primary"
-        >
+        <nav className="glass-pill hidden md:flex items-center gap-1 p-1.5 rounded-full" aria-label="Primary">
           {navLinks.map((link) => {
             const isActive =
               (currentRoute === '/' && link.label === 'Home' && activeSection === 'home') ||
@@ -157,16 +154,10 @@ export default function Header({
               (currentRoute === '/app-deployment/' && link.label === 'App Deployment');
 
             return (
-              <a
-                key={link.label}
-                href={link.target}
-                onClick={(e) => handleLinkClick(e, link)}
-                className={`px-4 py-2 rounded-full text-xs sm:text-sm font-medium transition-all duration-200 ${
-                  isActive
-                    ? 'bg-[#111111] text-[#f8f6f2] shadow-sm dark:bg-[#f8f6f2] dark:text-[#111111]'
-                    : 'text-foreground/75 hover:text-foreground hover:bg-black/5 dark:hover:bg-white/10'
-                }`}
-              >
+              <a key={link.label} href={link.target} onClick={(e) => handleLinkClick(e, link)} className={`px-4 py-2 rounded-full text-xs sm:text-sm font-medium transition-all duration-200 ${isActive
+                ? 'bg-[#111111] text-[#f8f6f2] shadow-sm dark:bg-[#f8f6f2] dark:text-[#111111]'
+                : 'text-foreground/75 hover:text-foreground hover:bg-black/5 dark:hover:bg-white/10'
+                }`}>
                 {link.label}
               </a>
             );
@@ -175,25 +166,16 @@ export default function Header({
 
         {/* Mobile Menu Button - Only Mobile */}
         {currentRoute === '/' && (
-          <button
-            type="button"
-            onClick={onOpenMenu}
-            className="md:hidden glass-pill flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium text-foreground cursor-pointer transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
-            aria-label="Open menu"
-          >
+          <button type="button" onClick={onOpenMenu} className="md:hidden glass-pill flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium text-foreground cursor-pointer transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]" aria-label="Open menu">
             <Menu className="w-4 h-4" />
             <span>Menu</span>
           </button>
         )}
 
         {/* Live IST Time Pill */}
-        <div
-          className="glass-pill flex items-center gap-2 px-4 py-2.5 rounded-full text-xs sm:text-sm text-foreground/80 font-medium"
-          title="Indian Standard Time (IST UTC+5:30)"
-        >
+        <div className="glass-pill flex items-center gap-2 px-4 py-2.5 rounded-full text-xs sm:text-sm text-foreground/80 font-medium" title="Indian Standard Time (IST UTC+5:30)">
           <Clock className="w-3.5 h-3.5 text-accent opacity-90" />
-          <span>
-            Local time{' '}
+          <span>Local time{' '}
             <strong className="font-semibold text-foreground">
               {timeInfo.time}
             </strong>

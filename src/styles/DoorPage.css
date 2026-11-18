@@ -1037,3 +1037,11 @@ body {
     filter: none;
   }
 }
+
+.service-page-wrapper {
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+  overflow-x: hidden;
+  transform-origin: center center;
+}

@@ -66,7 +66,10 @@ const PROJECTS = [
   },
 ];
 
-export default function AppDevelopment({ onNavigate = () => {} }) {
+export default function AppDevelopment({
+  onNavigate = () => {},
+  onOpenContact = () => {},
+}) {
   const containerRef = useRef(null);
   const cardsContainerRef = useRef(null);
   const cardRefs = useRef([]);
@@ -75,6 +78,7 @@ export default function AppDevelopment({ onNavigate = () => {} }) {
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [isLeaving, setIsLeaving] = useState(false);
 
+  // Always start this page from the top
   useEffect(() => {
     const root = document.documentElement;
     const previousBehavior = root.style.scrollBehavior;
@@ -87,6 +91,7 @@ export default function AppDevelopment({ onNavigate = () => {} }) {
     });
   }, []);
 
+  // Cinematic page entrance through the door portal
   useEffect(() => {
     const prefersReducedMotion =
       typeof window !== 'undefined' &&
@@ -102,7 +107,17 @@ export default function AppDevelopment({ onNavigate = () => {} }) {
           borderRadius: '0px',
           duration: 0.55,
           ease: 'power2.out',
-          onComplete: () => ScrollTrigger.refresh(),
+          onComplete: () => {
+            // CRITICAL: Clear transform and willChange so container does NOT act as a
+            // containing block for ScrollTrigger position:fixed pinning.
+            if (containerRef.current) {
+              gsap.set(containerRef.current, {
+                clearProps: 'transform,borderRadius',
+              });
+              containerRef.current.style.willChange = 'auto';
+            }
+            ScrollTrigger.refresh();
+          },
         }
       );
     }
@@ -144,6 +159,7 @@ export default function AppDevelopment({ onNavigate = () => {} }) {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // GSAP Stacked Card Scrub Animation matching reference video exactly
   useEffect(() => {
     if (!cardsContainerRef.current) return;
 
@@ -156,23 +172,42 @@ export default function AppDevelopment({ onNavigate = () => {} }) {
 
       const mm = gsap.matchMedia();
 
+      // Desktop and Tablet
       mm.add('(min-width: 768px)', () => {
         cards.forEach((card, i) => {
-          gsap.set(card, { transformOrigin: 'top center', force3D: true });
+          gsap.set(card, {
+            top: 0,
+            left: '50%',
+            xPercent: -50,
+            x: 0,
+            transformOrigin: 'top center',
+            force3D: true,
+          });
+
           if (i > 0) {
-            gsap.set(card, { yPercent: 120, opacity: 1 });
+            gsap.set(card, {
+              yPercent: 100,
+              scale: 1,
+              y: 0,
+              opacity: 1,
+            });
           } else {
-            gsap.set(card, { yPercent: 0, scale: 1, y: 0 });
+            gsap.set(card, {
+              yPercent: 0,
+              scale: 1,
+              y: 0,
+              opacity: 1,
+            });
           }
         });
 
         const tl = gsap.timeline({
           scrollTrigger: {
             trigger: cardsContainerRef.current,
-            start: 'top top+=110',
-            end: () => `+=${window.innerHeight * (totalCards - 1) * 1.15}`,
+            start: 'top top+=90',
+            end: () => `+=${window.innerHeight * (totalCards - 1)}`,
             pin: true,
-            scrub: 0.8,
+            scrub: 0.5,
             anticipatePin: 1,
             invalidateOnRefresh: true,
           },
@@ -180,35 +215,87 @@ export default function AppDevelopment({ onNavigate = () => {} }) {
 
         for (let i = 1; i < totalCards; i++) {
           const stepLabel = `step-${i}`;
-          tl.to(cards[i], { yPercent: 0, ease: 'power1.inOut', duration: 1 }, stepLabel);
 
+          // Active incoming card smoothly slides upward to stack on top
+          tl.to(
+            cards[i],
+            {
+              yPercent: 0,
+              ease: 'none',
+              duration: 1,
+            },
+            stepLabel
+          );
+
+          // All cards underneath progressively scale down, shift upward, and dim
           for (let p = 0; p < i; p++) {
             const depth = i - p;
-            const targetScale = Math.max(0.86, 1 - depth * 0.045);
-            const targetY = -depth * 15;
-            const targetOverlay = Math.min(0.48, depth * 0.16);
+            const targetScale = Math.max(0.88, 1 - depth * 0.04);
+            const targetY = -depth * 14;
+            const targetOverlay = Math.min(0.35, depth * 0.12);
 
-            tl.to(cards[p], { scale: targetScale, y: targetY, ease: 'power1.inOut', duration: 1 }, stepLabel);
+            tl.to(
+              cards[p],
+              {
+                scale: targetScale,
+                y: targetY,
+                ease: 'none',
+                duration: 1,
+              },
+              stepLabel
+            );
+
             if (overlays[p]) {
-              tl.to(overlays[p], { opacity: targetOverlay, ease: 'power1.inOut', duration: 1 }, stepLabel);
+              tl.to(
+                overlays[p],
+                {
+                  opacity: targetOverlay,
+                  ease: 'none',
+                  duration: 1,
+                },
+                stepLabel
+              );
             }
           }
         }
       });
 
+      // Mobile
       mm.add('(max-width: 767px)', () => {
         cards.forEach((card, i) => {
-          gsap.set(card, { transformOrigin: 'top center', force3D: true });
-          if (i > 0) gsap.set(card, { yPercent: 115 });
+          gsap.set(card, {
+            top: 0,
+            left: '50%',
+            xPercent: -50,
+            x: 0,
+            transformOrigin: 'top center',
+            force3D: true,
+          });
+
+          if (i > 0) {
+            gsap.set(card, {
+              yPercent: 100,
+              scale: 1,
+              y: 0,
+              opacity: 1,
+            });
+          } else {
+            gsap.set(card, {
+              yPercent: 0,
+              scale: 1,
+              y: 0,
+              opacity: 1,
+            });
+          }
         });
 
         const tlMobile = gsap.timeline({
           scrollTrigger: {
             trigger: cardsContainerRef.current,
-            start: 'top top+=90',
-            end: () => `+=${window.innerHeight * (totalCards - 1) * 1.0}`,
+            start: 'top top+=70',
+            end: () => `+=${window.innerHeight * (totalCards - 1)}`,
             pin: true,
-            scrub: 0.6,
+            scrub: 0.5,
             anticipatePin: 1,
             invalidateOnRefresh: true,
           },
@@ -216,13 +303,44 @@ export default function AppDevelopment({ onNavigate = () => {} }) {
 
         for (let i = 1; i < totalCards; i++) {
           const stepLabel = `mob-step-${i}`;
-          tlMobile.to(cards[i], { yPercent: 0, ease: 'power1.inOut', duration: 1 }, stepLabel);
+
+          tlMobile.to(
+            cards[i],
+            {
+              yPercent: 0,
+              ease: 'none',
+              duration: 1,
+            },
+            stepLabel
+          );
 
           for (let p = 0; p < i; p++) {
             const depth = i - p;
-            tlMobile.to(cards[p], { scale: Math.max(0.9, 1 - depth * 0.035), y: -depth * 10, ease: 'power1.inOut', duration: 1 }, stepLabel);
+            const targetScale = Math.max(0.92, 1 - depth * 0.03);
+            const targetY = -depth * 8;
+            const targetOverlay = Math.min(0.3, depth * 0.1);
+
+            tlMobile.to(
+              cards[p],
+              {
+                scale: targetScale,
+                y: targetY,
+                ease: 'none',
+                duration: 1,
+              },
+              stepLabel
+            );
+
             if (overlays[p]) {
-              tlMobile.to(overlays[p], { opacity: Math.min(0.4, depth * 0.14), ease: 'power1.inOut', duration: 1 }, stepLabel);
+              tlMobile.to(
+                overlays[p],
+                {
+                  opacity: targetOverlay,
+                  ease: 'none',
+                  duration: 1,
+                },
+                stepLabel
+              );
             }
           }
         }
@@ -243,131 +361,140 @@ export default function AppDevelopment({ onNavigate = () => {} }) {
   return (
     <div
       ref={containerRef}
-      className="service-page-wrapper min-h-screen pt-24 sm:pt-28 pb-20 px-4 sm:px-8 md:px-12 max-w-[84rem] mx-auto relative overflow-hidden"
+      className="service-page-wrapper min-h-screen pt-24 sm:pt-28 pb-12 px-4 sm:px-8 md:px-12 w-full max-w-[84rem] mx-auto relative overflow-hidden flex flex-col justify-between"
     >
-      <div className="mb-8">
-        <button
-          type="button"
-          onClick={handleBackClick}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-pill text-xs font-mono font-medium hover:text-accent transition-colors cursor-pointer"
+      <div className="w-full">
+        {/* Navigation back button */}
+        <div className="mb-6">
+          <button
+            type="button"
+            onClick={handleBackClick}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-pill text-xs font-mono font-medium hover:text-accent transition-colors cursor-pointer"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" />
+            <span>Back to the doors</span>
+          </button>
+        </div>
+
+        {/* Page Header */}
+        <div className="max-w-3xl mb-10">
+          <h1 className="text-4xl sm:text-6xl md:text-7xl font-extrabold tracking-tight text-foreground mb-4">
+            App Development
+          </h1>
+          <p className="text-lg sm:text-xl text-foreground/75 leading-relaxed font-normal">
+            iOS apps and games, designed and built end to end: from the first screen and the small
+            interactions to the details that make an app feel at home on iPhone.
+          </p>
+        </div>
+
+        {/* Stacked Cards Parent Stage */}
+        <div
+          ref={cardsContainerRef}
+          className="relative w-full h-[580px] sm:h-[620px] lg:h-[640px] mb-8 overflow-visible"
         >
-          <ArrowLeft className="w-3.5 h-3.5" />
-          <span>Back to the doors</span>
-        </button>
-      </div>
-
-      <div className="max-w-3xl mb-12 sm:mb-16">
-        <h1 className="text-4xl sm:text-6xl md:text-7xl font-extrabold tracking-tight text-foreground mb-4">
-          App Development
-        </h1>
-        <p className="text-lg sm:text-xl text-foreground/75 leading-relaxed font-normal">
-          iOS apps and games, designed and built end to end: from the first screen and the small
-          interactions to the details that make an app feel at home on iPhone.
-        </p>
-      </div>
-
-      <div
-        ref={cardsContainerRef}
-        className="relative w-full h-[640px] sm:h-[660px] lg:h-[680px] mb-20 overflow-visible"
-      >
-        {PROJECTS.map((project, idx) => {
-          const zIndex = 10 * (idx + 1);
-          return (
-            <article
-              key={project.id}
-              ref={(el) => (cardRefs.current[idx] = el)}
-              style={{ zIndex }}
-              className="absolute inset-0 w-full h-full rounded-[32px] sm:rounded-[36px] bg-[#f5f3ee] dark:bg-[#1a1818] border border-black/[0.08] dark:border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.08)] dark:shadow-[0_25px_50px_rgba(0,0,0,0.5)] p-6 sm:p-10 lg:p-12 overflow-hidden flex flex-col justify-between select-none"
-            >
-              <div
-                ref={(el) => (overlayRefs.current[idx] = el)}
-                className="absolute inset-0 rounded-[32px] sm:rounded-[36px] bg-black pointer-events-none opacity-0 z-20 transition-opacity"
-              />
-
-              <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 items-center gap-6 lg:gap-10 h-full">
+          {PROJECTS.map((project, idx) => {
+            const zIndex = 10 * (idx + 1);
+            return (
+              <article
+                key={project.id}
+                ref={(el) => (cardRefs.current[idx] = el)}
+                style={{ zIndex }}
+                className="absolute top-0 left-1/2 w-full h-full rounded-[32px] sm:rounded-[36px] bg-[#f5f3ee] dark:bg-[#1a1818] border border-black/[0.08] dark:border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.08)] dark:shadow-[0_25px_50px_rgba(0,0,0,0.5)] p-6 sm:p-10 lg:p-12 overflow-hidden flex flex-col justify-between select-none"
+              >
+                {/* Dimming overlay when card recedes into stack */}
                 <div
-                  className={`flex flex-col justify-between h-full ${
-                    project.reverse ? 'lg:col-span-7 lg:order-2' : 'lg:col-span-7 lg:order-1'
-                  }`}
-                >
-                  <div>
-                    <div className="flex items-center justify-between gap-3 mb-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl overflow-hidden shadow-sm flex-shrink-0 bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/10">
-                          <img
-                            src={project.iconUrl}
-                            onError={(e) => {
-                              if (!e.target.dataset.triedFallback) {
-                                e.target.dataset.triedFallback = 'true';
-                                e.target.src = '.' + project.iconUrl;
-                              }
-                            }}
-                            alt={`${project.title} icon`}
-                            className="w-full h-full object-cover"
-                            loading="eager"
-                          />
+                  ref={(el) => (overlayRefs.current[idx] = el)}
+                  className="absolute inset-0 rounded-[32px] sm:rounded-[36px] bg-black pointer-events-none opacity-0 z-20 transition-opacity"
+                />
+
+                <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 items-center gap-6 lg:gap-10 h-full">
+                  {/* Text Content Column */}
+                  <div
+                    className={`flex flex-col justify-between h-full ${
+                      project.reverse ? 'lg:col-span-7 lg:order-2' : 'lg:col-span-7 lg:order-1'
+                    }`}
+                  >
+                    <div>
+                      <div className="flex items-center justify-between gap-3 mb-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-xl overflow-hidden shadow-sm flex-shrink-0 bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/10">
+                            <img
+                              src={project.iconUrl}
+                              onError={(e) => {
+                                if (!e.target.dataset.triedFallback) {
+                                  e.target.dataset.triedFallback = 'true';
+                                  e.target.src = '.' + project.iconUrl;
+                                }
+                              }}
+                              alt={`${project.title} icon`}
+                              className="w-full h-full object-cover"
+                              loading="eager"
+                            />
+                          </div>
+                          <span className="text-xs font-mono font-semibold tracking-wider text-foreground/60 dark:text-foreground/50 uppercase">
+                            {project.category}
+                          </span>
                         </div>
-                        <span className="text-xs font-mono font-semibold tracking-wider text-foreground/60 dark:text-foreground/50 uppercase">
-                          {project.category}
-                        </span>
+                        <span className="text-xs font-mono text-muted">{project.num}</span>
                       </div>
-                      <span className="text-xs font-mono text-muted">{project.num}</span>
+
+                      <h2 className="text-2xl sm:text-4xl lg:text-5xl font-extrabold text-foreground tracking-tight mb-2">
+                        {project.title}
+                      </h2>
+                      <p className="text-xs sm:text-sm font-mono text-accent font-medium mb-4 sm:mb-6">
+                        {project.subtitle}
+                      </p>
+                      <p className="text-sm sm:text-base text-foreground/80 dark:text-foreground/75 leading-relaxed max-w-xl mb-6">
+                        {project.description}
+                      </p>
+                      <div className="flex flex-wrap gap-2 mb-6">
+                        {project.tags.map((tag) => (
+                          <span
+                            key={tag}
+                            className="px-3.5 py-1.5 rounded-full text-xs font-mono bg-black/5 dark:bg-white/5 text-foreground/75 dark:text-foreground/70 border border-black/5 dark:border-white/5"
+                          >
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
                     </div>
 
-                    <h2 className="text-2xl sm:text-4xl lg:text-5xl font-extrabold text-foreground tracking-tight mb-2">
-                      {project.title}
-                    </h2>
-                    <p className="text-xs sm:text-sm font-mono text-accent font-medium mb-4 sm:mb-6">
-                      {project.subtitle}
-                    </p>
-                    <p className="text-sm sm:text-base text-foreground/80 dark:text-foreground/75 leading-relaxed max-w-xl mb-6">
-                      {project.description}
-                    </p>
-                    <div className="flex flex-wrap gap-2 mb-6">
-                      {project.tags.map((tag) => (
-                        <span
-                          key={tag}
-                          className="px-3.5 py-1.5 rounded-full text-xs font-mono bg-black/5 dark:bg-white/5 text-foreground/75 dark:text-foreground/70 border border-black/5 dark:border-white/5"
-                        >
-                          {tag}
-                        </span>
-                      ))}
+                    <div className="flex items-center gap-2 pt-2 text-xs font-mono text-muted">
+                      <span className="w-2 h-2 rounded-full bg-foreground/35 dark:bg-foreground/45 inline-block" />
+                      <span>{project.badge}</span>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2 pt-2 text-xs font-mono text-muted">
-                    <span className="w-2 h-2 rounded-full bg-foreground/35 dark:bg-foreground/45 inline-block" />
-                    <span>{project.badge}</span>
+                  {/* Phone Mockup Column */}
+                  <div
+                    className={`relative flex items-center justify-center select-none ${
+                      project.reverse ? 'lg:col-span-5 lg:order-1' : 'lg:col-span-5 lg:order-2'
+                    }`}
+                  >
+                    <div className="relative w-[220px] sm:w-[250px] lg:w-[270px] drop-shadow-[0_20px_35px_rgba(0,0,0,0.18)] dark:drop-shadow-[0_25px_40px_rgba(0,0,0,0.65)]">
+                      <img
+                        src={project.phoneUrl}
+                        onError={(e) => {
+                          if (!e.target.dataset.triedFallback) {
+                            e.target.dataset.triedFallback = 'true';
+                            e.target.src = '.' + project.phoneUrl;
+                          }
+                        }}
+                        alt={`${project.title} preview`}
+                        className="w-full h-auto object-contain select-none pointer-events-none"
+                        loading="eager"
+                        onLoad={() => ScrollTrigger.refresh()}
+                      />
+                    </div>
                   </div>
                 </div>
-
-                <div
-                  className={`relative flex items-center justify-center select-none ${
-                    project.reverse ? 'lg:col-span-5 lg:order-1' : 'lg:col-span-5 lg:order-2'
-                  }`}
-                >
-                  <div className="relative w-[220px] sm:w-[250px] lg:w-[270px] drop-shadow-[0_20px_35px_rgba(0,0,0,0.18)] dark:drop-shadow-[0_25px_40px_rgba(0,0,0,0.65)]">
-                    <img
-                      src={project.phoneUrl}
-                      onError={(e) => {
-                        if (!e.target.dataset.triedFallback) {
-                          e.target.dataset.triedFallback = 'true';
-                          e.target.src = '.' + project.phoneUrl;
-                        }
-                      }}
-                      alt={`${project.title} preview`}
-                      className="w-full h-auto object-contain select-none pointer-events-none"
-                      loading="eager"
-                      onLoad={() => ScrollTrigger.refresh()}
-                    />
-                  </div>
-                </div>
-              </div>
-            </article>
-          );
-        })}
+              </article>
+            );
+          })}
+        </div>
       </div>
 
+      {/* Floating Scroll To Top Button */}
       <button
         type="button"
         onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}

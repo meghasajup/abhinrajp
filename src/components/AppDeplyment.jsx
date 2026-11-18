@@ -58,7 +58,10 @@ const PROJECTS = [
   },
 ];
 
-export default function AppDeployment({ onNavigate = () => {} }) {
+export default function AppDeployment({
+  onNavigate = () => {},
+  onOpenContact = () => {},
+}) {
   const containerRef = useRef(null);
   const cardsContainerRef = useRef(null);
   const cardRefs = useRef([]);
@@ -67,11 +70,11 @@ export default function AppDeployment({ onNavigate = () => {} }) {
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [isLeaving, setIsLeaving] = useState(false);
 
+  // Always start this page from the top
   useEffect(() => {
     const root = document.documentElement;
     const previousBehavior = root.style.scrollBehavior;
     root.style.scrollBehavior = 'auto';
-
     window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
 
     requestAnimationFrame(() => {
@@ -79,6 +82,7 @@ export default function AppDeployment({ onNavigate = () => {} }) {
     });
   }, []);
 
+  // Cinematic page entrance through the door portal
   useEffect(() => {
     const prefersReducedMotion =
       typeof window !== 'undefined' &&
@@ -94,7 +98,17 @@ export default function AppDeployment({ onNavigate = () => {} }) {
           borderRadius: '0px',
           duration: 0.55,
           ease: 'power2.out',
-          onComplete: () => ScrollTrigger.refresh(),
+          onComplete: () => {
+            // Clear transform and willChange so container does NOT act as a
+            // containing block for ScrollTrigger position:fixed pinning.
+            if (containerRef.current) {
+              gsap.set(containerRef.current, {
+                clearProps: 'transform,borderRadius',
+              });
+              containerRef.current.style.willChange = 'auto';
+            }
+            ScrollTrigger.refresh();
+          },
         }
       );
     }
@@ -136,6 +150,7 @@ export default function AppDeployment({ onNavigate = () => {} }) {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // GSAP Stacked Card Scrub Animation matching reference video exactly
   useEffect(() => {
     if (!cardsContainerRef.current) return;
 
@@ -148,23 +163,42 @@ export default function AppDeployment({ onNavigate = () => {} }) {
 
       const mm = gsap.matchMedia();
 
+      // Desktop and Tablet
       mm.add('(min-width: 768px)', () => {
         cards.forEach((card, i) => {
-          gsap.set(card, { transformOrigin: 'top center', force3D: true });
+          gsap.set(card, {
+            top: 0,
+            left: '50%',
+            xPercent: -50,
+            x: 0,
+            transformOrigin: 'top center',
+            force3D: true,
+          });
+
           if (i > 0) {
-            gsap.set(card, { yPercent: 120, opacity: 1 });
+            gsap.set(card, {
+              yPercent: 100,
+              scale: 1,
+              y: 0,
+              opacity: 1,
+            });
           } else {
-            gsap.set(card, { yPercent: 0, scale: 1, y: 0 });
+            gsap.set(card, {
+              yPercent: 0,
+              scale: 1,
+              y: 0,
+              opacity: 1,
+            });
           }
         });
 
         const tl = gsap.timeline({
           scrollTrigger: {
             trigger: cardsContainerRef.current,
-            start: 'top top+=110',
-            end: () => `+=${window.innerHeight * (totalCards - 1) * 1.15}`,
+            start: 'top top+=90',
+            end: () => `+=${window.innerHeight * (totalCards - 1)}`,
             pin: true,
-            scrub: 0.8,
+            scrub: 0.5,
             anticipatePin: 1,
             invalidateOnRefresh: true,
           },
@@ -172,7 +206,16 @@ export default function AppDeployment({ onNavigate = () => {} }) {
 
         for (let i = 1; i < totalCards; i++) {
           const stepLabel = `step-${i}`;
-          tl.to(cards[i], { yPercent: 0, ease: 'power1.inOut', duration: 1 }, stepLabel);
+
+          tl.to(
+            cards[i],
+            {
+              yPercent: 0,
+              ease: 'none',
+              duration: 1,
+            },
+            stepLabel
+          );
 
           for (let p = 0; p < i; p++) {
             const depth = i - p;
@@ -180,27 +223,68 @@ export default function AppDeployment({ onNavigate = () => {} }) {
             const targetY = -depth * 14;
             const targetOverlay = Math.min(0.48, depth * 0.15);
 
-            tl.to(cards[p], { scale: targetScale, y: targetY, ease: 'power1.inOut', duration: 1 }, stepLabel);
+            tl.to(
+              cards[p],
+              {
+                scale: targetScale,
+                y: targetY,
+                ease: 'none',
+                duration: 1,
+              },
+              stepLabel
+            );
+
             if (overlays[p]) {
-              tl.to(overlays[p], { opacity: targetOverlay, ease: 'power1.inOut', duration: 1 }, stepLabel);
+              tl.to(
+                overlays[p],
+                {
+                  opacity: targetOverlay,
+                  ease: 'none',
+                  duration: 1,
+                },
+                stepLabel
+              );
             }
           }
         }
       });
 
+      // Mobile
       mm.add('(max-width: 767px)', () => {
         cards.forEach((card, i) => {
-          gsap.set(card, { transformOrigin: 'top center', force3D: true });
-          if (i > 0) gsap.set(card, { yPercent: 115 });
+          gsap.set(card, {
+            top: 0,
+            left: '50%',
+            xPercent: -50,
+            x: 0,
+            transformOrigin: 'top center',
+            force3D: true,
+          });
+
+          if (i > 0) {
+            gsap.set(card, {
+              yPercent: 100,
+              scale: 1,
+              y: 0,
+              opacity: 1,
+            });
+          } else {
+            gsap.set(card, {
+              yPercent: 0,
+              scale: 1,
+              y: 0,
+              opacity: 1,
+            });
+          }
         });
 
         const tlMobile = gsap.timeline({
           scrollTrigger: {
             trigger: cardsContainerRef.current,
-            start: 'top top+=90',
-            end: () => `+=${window.innerHeight * (totalCards - 1) * 1.0}`,
+            start: 'top top+=70',
+            end: () => `+=${window.innerHeight * (totalCards - 1)}`,
             pin: true,
-            scrub: 0.6,
+            scrub: 0.5,
             anticipatePin: 1,
             invalidateOnRefresh: true,
           },
@@ -208,13 +292,44 @@ export default function AppDeployment({ onNavigate = () => {} }) {
 
         for (let i = 1; i < totalCards; i++) {
           const stepLabel = `mob-step-${i}`;
-          tlMobile.to(cards[i], { yPercent: 0, ease: 'power1.inOut', duration: 1 }, stepLabel);
+
+          tlMobile.to(
+            cards[i],
+            {
+              yPercent: 0,
+              ease: 'none',
+              duration: 1,
+            },
+            stepLabel
+          );
 
           for (let p = 0; p < i; p++) {
             const depth = i - p;
-            tlMobile.to(cards[p], { scale: Math.max(0.88, 1 - depth * 0.035), y: -depth * 10, ease: 'power1.inOut', duration: 1 }, stepLabel);
+            const targetScale = Math.max(0.88, 1 - depth * 0.035);
+            const targetY = -depth * 10;
+            const targetOverlay = Math.min(0.42, depth * 0.14);
+
+            tlMobile.to(
+              cards[p],
+              {
+                scale: targetScale,
+                y: targetY,
+                ease: 'none',
+                duration: 1,
+              },
+              stepLabel
+            );
+
             if (overlays[p]) {
-              tlMobile.to(overlays[p], { opacity: Math.min(0.42, depth * 0.14), ease: 'power1.inOut', duration: 1 }, stepLabel);
+              tlMobile.to(
+                overlays[p],
+                {
+                  opacity: targetOverlay,
+                  ease: 'none',
+                  duration: 1,
+                },
+                stepLabel
+              );
             }
           }
         }
@@ -270,7 +385,7 @@ export default function AppDeployment({ onNavigate = () => {} }) {
               key={project.id}
               ref={(el) => (cardRefs.current[idx] = el)}
               style={{ zIndex }}
-              className="absolute inset-0 w-full h-full rounded-[32px] sm:rounded-[36px] bg-[#f5f3ee] dark:bg-[#1a1818] border border-black/[0.08] dark:border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.08)] dark:shadow-[0_25px_50px_rgba(0,0,0,0.5)] p-6 sm:p-10 lg:p-12 overflow-hidden flex flex-col justify-between select-none"
+              className="absolute top-0 left-1/2 w-full h-full rounded-[32px] sm:rounded-[36px] bg-[#f5f3ee] dark:bg-[#1a1818] border border-black/[0.08] dark:border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.08)] dark:shadow-[0_25px_50px_rgba(0,0,0,0.5)] p-6 sm:p-10 lg:p-12 overflow-hidden flex flex-col justify-between select-none"
             >
               <div
                 ref={(el) => (overlayRefs.current[idx] = el)}
@@ -360,4 +475,4 @@ export default function AppDeployment({ onNavigate = () => {} }) {
       </button>
     </div>
   );
-}
+} 

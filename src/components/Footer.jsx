@@ -157,7 +157,7 @@ export default function Footer({ onOpenContact, onNavigate }) {
               </button>
 
               <button
-                onClick={() => onNavigate('#door')}
+                onClick={() => onNavigate('#doors')}
                 className="px-5 py-3 rounded-full
                 border border-white/20
                 text-[#e5dfdc]
