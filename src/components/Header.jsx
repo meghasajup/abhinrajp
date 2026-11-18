@@ -21,7 +21,6 @@ export default function Header({
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
-
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
@@ -65,9 +64,7 @@ export default function Header({
     };
 
     updateTime();
-
     const interval = setInterval(updateTime, 1000);
-
     return () => clearInterval(interval);
   }, []);
 
@@ -77,17 +74,20 @@ export default function Header({
     {
       label: 'App Development',
       target: '#door',
-      // route: '/app-developer/'
+      route: '/app-developer/',
+      doorIndex: 0,
     },
     {
       label: 'UI/UX Design',
       target: '#door',
-      // route: '/ui-ux/'
+      route: '/ui-ux/',
+      doorIndex: 1,
     },
     {
       label: 'App Deployment',
       target: '#door',
-      // route: '/app-deployment/'
+      route: '/app-deployment/',
+      doorIndex: 2,
     },
     {
       label: 'My story',
@@ -108,26 +108,41 @@ export default function Header({
     if (link.isContact) {
       if (onOpenContact) {
         onOpenContact();
-      } else {
+      } else if (onNavigate) {
         onNavigate('#contact-footer');
       }
       return;
     }
 
-    if (link.route && link.route !== currentRoute) {
-      onNavigate(link.route);
-    } else if (link.target.startsWith('#')) {
+    if (!onNavigate) return;
+
+    // If clicking a door service link
+    if (link.route && link.route !== '/') {
+      if (currentRoute === link.route) {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        onNavigate(link.route, { doorIndex: link.doorIndex });
+      }
+      return;
+    }
+
+    // If currently on a service page and clicking Home or My story
+    if (currentRoute !== '/' && link.route === '/') {
+      onNavigate('/', { isBack: true });
+      return;
+    }
+
+    // On home page navigating to anchor
+    if (link.target.startsWith('#')) {
       onNavigate(link.target);
     } else {
-      onNavigate(link.route);
+      onNavigate(link.route || '/');
     }
   };
 
   return (
     <header className="fixed top-4 sm:top-6 left-0 right-0 z-40 flex items-center justify-center px-4 pointer-events-none transition-all duration-300">
-
       <div className="flex items-center gap-2 sm:gap-3 pointer-events-auto">
-
         {/* Desktop Navigation - Always Visible */}
         <nav
           className="glass-pill hidden md:flex items-center gap-1 p-1.5 rounded-full"
@@ -135,12 +150,11 @@ export default function Header({
         >
           {navLinks.map((link) => {
             const isActive =
-              (currentRoute === '/' &&
-                link.label === 'Home' &&
-                activeSection === 'home') ||
-              (currentRoute === '/' &&
-                link.label === 'My story' &&
-                activeSection === 'about');
+              (currentRoute === '/' && link.label === 'Home' && activeSection === 'home') ||
+              (currentRoute === '/' && link.label === 'My story' && activeSection === 'about') ||
+              (currentRoute === '/app-developer/' && link.label === 'App Development') ||
+              (currentRoute === '/ui-ux/' && link.label === 'UI/UX Design') ||
+              (currentRoute === '/app-deployment/' && link.label === 'App Deployment');
 
             return (
               <a
@@ -162,6 +176,7 @@ export default function Header({
         {/* Mobile Menu Button - Only Mobile */}
         {currentRoute === '/' && (
           <button
+            type="button"
             onClick={onOpenMenu}
             className="md:hidden glass-pill flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium text-foreground cursor-pointer transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
             aria-label="Open menu"
@@ -177,23 +192,18 @@ export default function Header({
           title="Indian Standard Time (IST UTC+5:30)"
         >
           <Clock className="w-3.5 h-3.5 text-accent opacity-90" />
-
           <span>
             Local time{' '}
             <strong className="font-semibold text-foreground">
               {timeInfo.time}
             </strong>
           </span>
-
           <span className="opacity-40">·</span>
-
           <Calendar className="w-3.5 h-3.5 text-accent opacity-90 hidden sm:inline" />
-
           <span className="hidden sm:inline">
             {timeInfo.date}
           </span>
         </div>
-
       </div>
     </header>
   );

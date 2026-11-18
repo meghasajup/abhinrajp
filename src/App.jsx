@@ -1,4 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
 import Header from './components/Header.jsx';
 import ThemeCord from './components/ThemeCord.jsx';
 import Hero from './components/Hero.jsx';
@@ -7,14 +10,27 @@ import StorySection from './components/StorySection.jsx';
 import Footer from './components/Footer.jsx';
 import MenuDrawer from './components/MenuDrawer.jsx';
 import HireModal from './components/HireModal.jsx';
+
 import AppDevelopment from './components/AppDevelopment.jsx';
-import DeveloperPage from './components/DeveloperPage.jsx';
-import BiodiversityCaseStudy from './components/BiodiversityCaseStudy.jsx';
+import UiUxDesign from './components/UX-Design.jsx';
+import AppDeployment from './components/AppDeplyment.jsx';
 import ContactPage from './components/ContactPage.jsx';
+
 import { ArrowUp } from 'lucide-react';
+import './styles/DoorPage.css';
+
+if (typeof window !== 'undefined') {
+  gsap.registerPlugin(ScrollTrigger);
+}
 
 export default function App() {
-  const [currentRoute, setCurrentRoute] = useState(window.location.pathname || '/');
+  const [currentRoute, setCurrentRoute] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return window.location.pathname || '/';
+    }
+    return '/';
+  });
+
   const [isDark, setIsDark] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isHireModalOpen, setIsHireModalOpen] = useState(false);
@@ -23,7 +39,27 @@ export default function App() {
   const [loadingProgress, setLoadingProgress] = useState(1);
   const [showScrollTop, setShowScrollTop] = useState(false);
 
-  // Initializing ticker
+  const [activeDoorIndex, setActiveDoorIndex] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const path = window.location.pathname || '';
+      if (path.includes('app-developer')) return 0;
+      if (path.includes('ui-ux')) return 1;
+      if (path.includes('app-deployment')) return 2;
+    }
+    return -1;
+  });
+
+  const [isDoorsExiting, setIsDoorsExiting] = useState(false);
+
+  // Pending route queue for smooth chain transition
+  const [pendingRoute, setPendingRoute] = useState(null);
+  const [pendingDoorIndex, setPendingDoorIndex] = useState(-1);
+
+  const isTransitioningRef = useRef(false);
+  const serviceWrapperRef = useRef(null);
+  const doorsSectionRef = useRef(null);
+
+  // PRELOADER
   useEffect(() => {
     let progress = 1;
     const interval = setInterval(() => {
@@ -37,29 +73,28 @@ export default function App() {
         setLoadingProgress(progress);
       }
     }, 40);
+
     return () => clearInterval(interval);
   }, []);
 
-  // Sync route on popstate
-  useEffect(() => {
-    const handlePopState = () => {
-      setCurrentRoute(window.location.pathname || '/');
-    };
-    window.addEventListener('popstate', handlePopState);
-    return () => window.removeEventListener('popstate', handlePopState);
-  }, []);
+  const toggleDarkMode = () => {
+    const nextMode = !isDark;
+    setIsDark(nextMode);
+    if (nextMode) {
+      document.documentElement.setAttribute('data-mode', 'dark');
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.removeAttribute('data-mode');
+      document.documentElement.classList.remove('dark');
+    }
+  };
 
-  // Scroll listener for active section and scroll-to-top button
   useEffect(() => {
     const handleScroll = () => {
-      if (window.scrollY > 400) {
-        setShowScrollTop(true);
-      } else {
-        setShowScrollTop(false);
-      }
+      setShowScrollTop(window.scrollY > 400);
 
       if (currentRoute === '/') {
-        const worksEl = document.getElementById('works');
+        const worksEl = document.getElementById('doors');
         const aboutEl = document.getElementById('about');
         const scrollY = window.scrollY + 300;
 
@@ -77,85 +112,353 @@ export default function App() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, [currentRoute]);
 
-  // Dark mode toggle
-  const toggleDarkMode = () => {
-    const nextMode = !isDark;
-    setIsDark(nextMode);
-    if (nextMode) {
-      document.documentElement.setAttribute('data-mode', 'dark');
-    } else {
-      document.documentElement.removeAttribute('data-mode');
+  useEffect(() => {
+    if (currentRoute !== '/') {
+      window.scrollTo(0, 0);
+      setShowScrollTop(false);
+      setActiveSection('');
     }
-  };
+  }, [currentRoute]);
 
-  const navigateTo = (target) => {
-    if (target.startsWith('#')) {
-      if (currentRoute !== '/') {
-        window.history.pushState({}, '', '/');
-        setCurrentRoute('/');
-        setTimeout(() => {
-          const el = document.querySelector(target);
-          if (el) el.scrollIntoView({ behavior: 'smooth' });
-        }, 100);
+  useEffect(() => {
+    if (currentRoute !== '/' && serviceWrapperRef.current) {
+      const prefersReducedMotion =
+        typeof window !== 'undefined' &&
+        window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      if (prefersReducedMotion) {
+        gsap.set(serviceWrapperRef.current, { opacity: 1, scale: 1 });
+        isTransitioningRef.current = false;
+        return;
+      }
+
+      gsap.fromTo(
+        serviceWrapperRef.current,
+        { opacity: 0, scale: 0.94, borderRadius: '48px' },
+        {
+          opacity: 1,
+          scale: 1,
+          borderRadius: '0px',
+          duration: 0.55,
+          ease: 'power2.out',
+          clearProps: 'borderRadius,transform',
+          onComplete: () => {
+            isTransitioningRef.current = false;
+            if (typeof ScrollTrigger !== 'undefined') {
+              ScrollTrigger.refresh();
+            }
+          },
+        }
+      );
+    }
+  }, [currentRoute]);
+
+  // COMPLETE HANDLER FOR REVERSE DOOR EXIT ANIMATION
+  const handleExitComplete = useCallback(() => {
+    setIsDoorsExiting(false);
+
+    // If header navigation triggered a chain transition, open the new door immediately!
+    if (pendingRoute && pendingRoute !== '/') {
+      const nextRoute = pendingRoute;
+      const nextDoorIdx = pendingDoorIndex;
+
+      setPendingRoute(null);
+      setPendingDoorIndex(-1);
+      setActiveDoorIndex(nextDoorIdx);
+
+      if (doorsSectionRef.current && doorsSectionRef.current.triggerEntrance) {
+        doorsSectionRef.current.triggerEntrance(nextDoorIdx);
       } else {
+        setCurrentRoute(nextRoute);
+        try {
+          window.history.pushState({ route: nextRoute, doorIndex: nextDoorIdx }, '', nextRoute);
+        } catch (e) {
+          window.location.hash = nextRoute.replace(/\//g, '');
+        }
+      }
+      return;
+    }
+
+    setActiveDoorIndex(-1);
+    isTransitioningRef.current = false;
+
+    if (typeof ScrollTrigger !== 'undefined') {
+      ScrollTrigger.refresh();
+    }
+
+    setTimeout(() => {
+      const doorsEl = document.getElementById('doors');
+      if (doorsEl) {
+        doorsEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }, 40);
+  }, [pendingRoute, pendingDoorIndex]);
+
+  // MASTER NAVIGATION HANDLER
+  const navigateTo = useCallback(
+    (target, options = {}) => {
+      const { doorIndex, isBack } = options;
+
+      // 1. CHAIN NAVIGATION FROM HEADER (Service page -> Another Service page)
+      if (
+        currentRoute !== '/' &&
+        target !== '/' &&
+        target !== '#works' &&
+        target !== '#doors' &&
+        target !== '#home' &&
+        !isBack
+      ) {
+        if (isTransitioningRef.current) return;
+        isTransitioningRef.current = true;
+
+        let targetDoorIdx = doorIndex;
+        if (targetDoorIdx === undefined) {
+          if (target.includes('app-developer')) targetDoorIdx = 0;
+          else if (target.includes('ui-ux')) targetDoorIdx = 1;
+          else if (target.includes('app-deployment')) targetDoorIdx = 2;
+        }
+
+        const exitIdx = activeDoorIndex >= 0 ? activeDoorIndex : 0;
+
+        setPendingRoute(target);
+        setPendingDoorIndex(targetDoorIdx);
+
+        const prefersReducedMotion =
+          typeof window !== 'undefined' &&
+          window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+        if (prefersReducedMotion || !serviceWrapperRef.current) {
+          setCurrentRoute(target);
+          setActiveDoorIndex(targetDoorIdx);
+          isTransitioningRef.current = false;
+          window.history.pushState(null, '', target);
+          return;
+        }
+
+        // CRITICAL: Instantly scroll window directly to the doors section (bypassing Hero section)
+        const doorsEl = document.getElementById('doors');
+        if (doorsEl) {
+          doorsEl.scrollIntoView({ behavior: 'instant', block: 'center' });
+        } else {
+          window.scrollTo({ top: window.innerHeight, behavior: 'instant' });
+        }
+
+        // Shrink service page card and play reverse door close animation
+        gsap.to(serviceWrapperRef.current, {
+          opacity: 0,
+          scale: 0.94,
+          borderRadius: '48px',
+          duration: 0.38,
+          ease: 'power2.in',
+          onComplete: () => {
+            setActiveDoorIndex(exitIdx);
+            setIsDoorsExiting(true);
+            setCurrentRoute('/');
+
+            try {
+              window.history.pushState(null, '', '/');
+            } catch (e) {
+              window.location.hash = '';
+            }
+          },
+        });
+
+        setIsMenuOpen(false);
+        return;
+      }
+
+      // 2. STANDARD BACK TO DOORS
+      if (
+        currentRoute !== '/' &&
+        (isBack ||
+          target === '/' ||
+          target === '#works' ||
+          target === '#doors' ||
+          target === '#home')
+      ) {
+        if (isTransitioningRef.current) return;
+        isTransitioningRef.current = true;
+
+        const exitIdx =
+          doorIndex !== undefined
+            ? doorIndex
+            : activeDoorIndex >= 0
+            ? activeDoorIndex
+            : 0;
+
+        const prefersReducedMotion =
+          typeof window !== 'undefined' &&
+          window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+        if (prefersReducedMotion || !serviceWrapperRef.current) {
+          setCurrentRoute('/');
+          setActiveDoorIndex(-1);
+          setIsDoorsExiting(false);
+          isTransitioningRef.current = false;
+          window.history.pushState(null, '', '/');
+          return;
+        }
+
+        const doorsEl = document.getElementById('doors');
+        if (doorsEl) {
+          doorsEl.scrollIntoView({ behavior: 'instant', block: 'center' });
+        } else {
+          window.scrollTo({ top: window.innerHeight, behavior: 'instant' });
+        }
+
+        gsap.to(serviceWrapperRef.current, {
+          opacity: 0,
+          scale: 0.94,
+          borderRadius: '48px',
+          duration: 0.38,
+          ease: 'power2.in',
+          onComplete: () => {
+            setActiveDoorIndex(exitIdx);
+            setIsDoorsExiting(true);
+            setCurrentRoute('/');
+
+            try {
+              window.history.pushState(null, '', '/');
+            } catch (e) {
+              window.location.hash = '';
+            }
+          },
+        });
+
+        setIsMenuOpen(false);
+        return;
+      }
+
+      // 3. ANCHOR SCROLL
+      if (target.startsWith('#')) {
         const el = document.querySelector(target);
         if (el) el.scrollIntoView({ behavior: 'smooth' });
+        setIsMenuOpen(false);
+        return;
       }
-    } else {
-      window.history.pushState({}, '', target);
+
+      // 4. FORWARD ENTRY FROM HOME PAGE
+      let targetDoorIdx = doorIndex;
+      if (targetDoorIdx === undefined) {
+        if (target.includes('app-developer')) targetDoorIdx = 0;
+        else if (target.includes('ui-ux')) targetDoorIdx = 1;
+        else if (target.includes('app-deployment')) targetDoorIdx = 2;
+      }
+
+      if (targetDoorIdx !== undefined && targetDoorIdx >= 0) {
+        setActiveDoorIndex(targetDoorIdx);
+      }
+
+      if (currentRoute !== '/' && serviceWrapperRef.current) {
+        isTransitioningRef.current = true;
+        gsap.to(serviceWrapperRef.current, {
+          opacity: 0,
+          scale: 0.94,
+          borderRadius: '48px',
+          duration: 0.32,
+          ease: 'power2.in',
+          onComplete: () => {
+            setCurrentRoute(target);
+            try {
+              window.history.pushState(
+                { route: target, doorIndex: targetDoorIdx },
+                '',
+                target
+              );
+            } catch (e) {
+              window.location.hash = target.replace(/\//g, '');
+            }
+          },
+        });
+        setIsMenuOpen(false);
+        return;
+      }
+
+      setIsDoorsExiting(false);
       setCurrentRoute(target);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-  };
+
+      try {
+        window.history.pushState(
+          { route: target, doorIndex: targetDoorIdx },
+          '',
+          target
+        );
+      } catch (e) {
+        window.location.hash = target.replace(/\//g, '');
+      }
+
+      setIsMenuOpen(false);
+    },
+    [currentRoute, activeDoorIndex]
+  );
+
+  useEffect(() => {
+    const handlePopState = () => {
+      const newPath = window.location.pathname || '/';
+      if (currentRoute !== '/' && (newPath === '/' || newPath === '')) {
+        navigateTo('/', { isBack: true });
+        return;
+      }
+      if (currentRoute === '/' && newPath !== '/') {
+        let doorIdx = 0;
+        if (newPath.includes('ui-ux')) doorIdx = 1;
+        else if (newPath.includes('app-deployment')) doorIdx = 2;
+
+        navigateTo(newPath, { doorIndex: doorIdx });
+        return;
+      }
+      setCurrentRoute(newPath);
+      window.scrollTo(0, 0);
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [currentRoute, navigateTo]);
+
+  const openContact = () => setIsHireModalOpen(true);
 
   const renderCurrentPage = () => {
     switch (currentRoute) {
       case '/app-developer/':
       case '/app-developer':
         return (
-          <AppDevelopment 
-            onNavigate={navigateTo} 
-            onOpenContact={() => setIsHireModalOpen(true)} 
-          />
+          <div ref={serviceWrapperRef} className="service-page-wrapper">
+            <AppDevelopment onNavigate={navigateTo} onOpenContact={openContact} />
+          </div>
         );
-      case '/developer/':
-      case '/developer':
+      case '/ui-ux/':
+      case '/ui-ux':
         return (
-          <DeveloperPage 
-            onNavigate={navigateTo} 
-            onOpenContact={() => setIsHireModalOpen(true)} 
-          />
+          <div ref= {serviceWrapperRef} className="service-page-wrapper">
+            <UiUxDesign onNavigate={navigateTo} onOpenContact={openContact} />
+          </div>
         );
-      case '/biodiversity-hotspot-explorer/':
-      case '/biodiversity-hotspot-explorer':
+      case '/app-deployment/':
+      case '/app-deployment':
         return (
-          <BiodiversityCaseStudy 
-            onNavigate={navigateTo} 
-            onOpenContact={() => setIsHireModalOpen(true)} 
-          />
+          <div ref={serviceWrapperRef} className="service-page-wrapper">
+            <AppDeployment onNavigate={navigateTo} onOpenContact={openContact} />
+          </div>
         );
       case '/contact/':
       case '/contact':
         return (
-          <ContactPage 
-            onNavigate={navigateTo} 
-          />
+          <div ref={serviceWrapperRef} className="service-page-wrapper">
+            <ContactPage onNavigate={navigateTo} />
+          </div>
         );
       default:
         return (
           <main>
-            <Hero 
-              onOpenContact={() => setIsHireModalOpen(true)} 
-              onNavigate={navigateTo} 
+            <Hero onOpenContact={openContact} onNavigate={navigateTo} />
+            <DoorsSection
+              ref={doorsSectionRef}
+              onNavigate={navigateTo}
+              isExiting={isDoorsExiting}
+              exitDoorIndex={activeDoorIndex}
+              onExitComplete={handleExitComplete}
             />
-            <DoorsSection 
-              onNavigate={navigateTo} 
-            />
-            <StorySection />
-            <Footer 
-              onOpenContact={() => setIsHireModalOpen(true)} 
-              onNavigate={navigateTo} 
-            />
+            <StorySection onNavigate={navigateTo} />
           </main>
         );
     }
@@ -163,12 +466,8 @@ export default function App() {
 
   return (
     <div className="relative min-h-screen bg-background text-foreground transition-colors duration-300">
-      
-      {/* Preloader / Initializing Ticker */}
       {!isLoaded && (
-        <div 
-          className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-[#f8f6f2] dark:bg-[#111111] transition-opacity duration-500 text-foreground"
-        >
+        <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-[#f8f6f2] dark:bg-[#111111] transition-opacity duration-500 text-foreground">
           <div className="flex flex-col items-center gap-4">
             <span className="font-extrabold text-3xl tracking-tight">
               Abhinraj<span className="text-accent">.</span>
@@ -178,7 +477,7 @@ export default function App() {
               <span>INITIALIZING {String(loadingProgress).padStart(3, '0')}%</span>
             </div>
             <div className="w-48 h-1 bg-black/10 dark:bg-white/10 rounded-full overflow-hidden mt-2">
-              <div 
+              <div
                 className="h-full bg-accent transition-all duration-75 ease-out"
                 style={{ width: `${loadingProgress}%` }}
               />
@@ -187,27 +486,23 @@ export default function App() {
         </div>
       )}
 
-      {/* Floating Header */}
-      <Header 
+      <Header
         activeSection={activeSection}
         onNavigate={navigateTo}
         onOpenMenu={() => setIsMenuOpen(true)}
-        onOpenContact={() => setIsHireModalOpen(true)}
+        onOpenContact={openContact}
         currentRoute={currentRoute}
       />
 
-      {/* Retro Pull-Cord Dark Mode Switch */}
-      <ThemeCord 
-        isDark={isDark} 
-        onToggle={toggleDarkMode} 
-      />
+      <ThemeCord isDark={isDark} onToggle={toggleDarkMode} />
 
-      {/* Active Page View */}
       {renderCurrentPage()}
 
-      {/* Floating Scroll To Top Button */}
+      <Footer onOpenContact={openContact} onNavigate={navigateTo} />
+
       {showScrollTop && (
         <button
+          type="button"
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
           className="fixed bottom-6 right-6 z-40 w-11 h-11 rounded-full bg-[#111111] text-[#f8f6f2] dark:bg-[#f8f6f2] dark:text-[#111111] shadow-2xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all cursor-pointer"
           title="Scroll back to top"
@@ -217,20 +512,14 @@ export default function App() {
         </button>
       )}
 
-      {/* Fullscreen Mobile / Desktop Menu Drawer */}
-      <MenuDrawer 
-        isOpen={isMenuOpen} 
+      <MenuDrawer
+        isOpen={isMenuOpen}
         onClose={() => setIsMenuOpen(false)}
         onNavigate={navigateTo}
-        onOpenContact={() => setIsHireModalOpen(true)}
+        onOpenContact={openContact}
       />
 
-      {/* Hire Me Contact Modal Dialog */}
-      <HireModal 
-        isOpen={isHireModalOpen} 
-        onClose={() => setIsHireModalOpen(false)} 
-      />
-
+      <HireModal isOpen={isHireModalOpen} onClose={() => setIsHireModalOpen(false)} />
     </div>
   );
 }

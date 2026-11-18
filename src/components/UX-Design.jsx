@@ -1,0 +1,389 @@
+import React, { useRef, useState, useEffect } from 'react';
+import { ArrowLeft, ArrowUp, ArrowUpRight } from 'lucide-react';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+if (typeof window !== 'undefined') {
+  gsap.registerPlugin(ScrollTrigger);
+}
+
+const PROJECTS = [
+  {
+    id: 'cliq',
+    category: 'PRODUCT DESIGN',
+    title: 'Cliq',
+    subtitle: 'Affiliate management · self-hosted SaaS',
+    description:
+      'A full affiliate platform a company runs on its own servers. Admins see revenue, commission, signups and purchases, top-promoter leaderboards and a daily chart; promoters get their own dashboard to create and track referral links. Fully white-label, so each company runs it under its own brand.',
+    tags: ['SaaS dashboard', 'Data visualisation', 'White-label'],
+    badge: 'Admin and promoter screens, shown under three client brands',
+    computerUrl: '/images/apps/computer-cliq.png',
+    reverse: false,
+  },
+  {
+    id: 'prime-hostel',
+    category: 'FIGMA PROTOTYPE',
+    title: 'Prime Hostel',
+    subtitle: 'Hotel booking · web app design',
+    description:
+      'A booking flow from search to reservation: location and date pickers, hotel listings with filters, a property page with gallery, facilities, reviews and a price breakdown, plus login and sign-up.',
+    tags: ['User flow', 'Interactive prototype', 'Booking UX'],
+    badge: 'Prototype walkthrough recorded in Figma',
+    computerUrl: '/images/apps/computer-prime-hostel.png',
+    reverse: true,
+  },
+  {
+    id: 'webuildtech',
+    category: 'FIGMA PROTOTYPE',
+    title: 'WeBuildTech',
+    subtitle: 'AI agency · website design',
+    description:
+      'A bold, dark landing page for an AI product studio: a 3D mascot hero, service cards, cloud partners, a technology wall, case studies and a project enquiry call to action.',
+    tags: ['Landing page', 'Visual design', 'Brand look'],
+    badge: 'Prototype walkthrough recorded in Figma',
+    computerUrl: '/images/apps/computer-webuildtech.png',
+    reverse: false,
+  },
+  {
+    id: 'jordan-one-take-4',
+    category: 'FIGMA PROTOTYPE',
+    title: 'Jordan One Take 4',
+    subtitle: 'Product page · e-commerce concept',
+    description:
+      'A product page concept where each colourway flies in with smart-animate transitions, with oversized type, colour swatches, size select and add to cart.',
+    tags: ['E-commerce', 'Smart animate', 'Product showcase'],
+    badge: 'Prototype walkthrough recorded in Figma',
+    computerUrl: '/images/apps/computer-jordan.png',
+    reverse: true,
+  },
+  {
+    id: 'zerodha-pnl',
+    category: 'QUICKO · LIVE',
+    title: 'P&L Page for Zerodha',
+    subtitle: 'Designed and shipped · pnl.page',
+    description:
+      'Designed end to end: the dark trading-terminal look, a clear hero with the product shown in context, and the sections that explain P&L, tax reports and accrual summaries.',
+    tags: ['UI design', 'Design to build', 'Live product'],
+    badge: null,
+    hasButton: true,
+    buttonText: 'Visit live site',
+    buttonUrl: 'https://pnl.page',
+    computerUrl: '/images/apps/computer-zerodha.png',
+    reverse: false,
+  },
+];
+
+export default function UiUxDesign({ onNavigate = () => {} }) {
+  const containerRef = useRef(null);
+  const cardsContainerRef = useRef(null);
+  const cardRefs = useRef([]);
+  const overlayRefs = useRef([]);
+  const [showScrollTop, setShowScrollTop] = useState(false);
+  const [isLeaving, setIsLeaving] = useState(false);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    const previousBehavior = root.style.scrollBehavior;
+    root.style.scrollBehavior = 'auto';
+
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+
+    requestAnimationFrame(() => {
+      root.style.scrollBehavior = previousBehavior;
+    });
+  }, []);
+
+  useEffect(() => {
+    const prefersReducedMotion =
+      typeof window !== 'undefined' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    if (!prefersReducedMotion && containerRef.current) {
+      gsap.fromTo(
+        containerRef.current,
+        { opacity: 0, scale: 0.94, borderRadius: '48px' },
+        {
+          opacity: 1,
+          scale: 1,
+          borderRadius: '0px',
+          duration: 0.55,
+          ease: 'power2.out',
+          onComplete: () => ScrollTrigger.refresh(),
+        }
+      );
+    }
+  }, []);
+
+  const handleBackClick = (e) => {
+    if (e) e.preventDefault();
+    if (isLeaving) return;
+    setIsLeaving(true);
+
+    const prefersReducedMotion =
+      typeof window !== 'undefined' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    if (prefersReducedMotion || !containerRef.current) {
+      onNavigate('/', { doorIndex: 1, isBack: true });
+      return;
+    }
+
+    if (window.scrollY > 100) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    gsap.to(containerRef.current, {
+      opacity: 0,
+      scale: 0.94,
+      borderRadius: '48px',
+      duration: 0.38,
+      ease: 'power2.in',
+      onComplete: () => {
+        onNavigate('/', { doorIndex: 1, isBack: true });
+      },
+    });
+  };
+
+  useEffect(() => {
+    const handleScroll = () => setShowScrollTop(window.scrollY > 400);
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  useEffect(() => {
+    if (!cardsContainerRef.current) return;
+
+    const ctx = gsap.context(() => {
+      const cards = cardRefs.current.filter(Boolean);
+      const overlays = overlayRefs.current.filter(Boolean);
+      const totalCards = cards.length;
+
+      if (totalCards <= 1) return;
+
+      const mm = gsap.matchMedia();
+
+      mm.add('(min-width: 768px)', () => {
+        cards.forEach((card, i) => {
+          gsap.set(card, { transformOrigin: 'top center', force3D: true });
+          if (i > 0) {
+            gsap.set(card, { yPercent: 120, opacity: 1 });
+          } else {
+            gsap.set(card, { yPercent: 0, scale: 1, y: 0 });
+          }
+        });
+
+        const tl = gsap.timeline({
+          scrollTrigger: {
+            trigger: cardsContainerRef.current,
+            start: 'top top+=110',
+            end: () => `+=${window.innerHeight * (totalCards - 1) * 1.15}`,
+            pin: true,
+            scrub: 0.8,
+            anticipatePin: 1,
+            invalidateOnRefresh: true,
+          },
+        });
+
+        for (let i = 1; i < totalCards; i++) {
+          const stepLabel = `step-${i}`;
+          tl.to(cards[i], { yPercent: 0, ease: 'power1.inOut', duration: 1 }, stepLabel);
+
+          for (let p = 0; p < i; p++) {
+            const depth = i - p;
+            const targetScale = Math.max(0.85, 1 - depth * 0.04);
+            const targetY = -depth * 14;
+            const targetOverlay = Math.min(0.48, depth * 0.15);
+
+            tl.to(cards[p], { scale: targetScale, y: targetY, ease: 'power1.inOut', duration: 1 }, stepLabel);
+            if (overlays[p]) {
+              tl.to(overlays[p], { opacity: targetOverlay, ease: 'power1.inOut', duration: 1 }, stepLabel);
+            }
+          }
+        }
+      });
+
+      mm.add('(max-width: 767px)', () => {
+        cards.forEach((card, i) => {
+          gsap.set(card, { transformOrigin: 'top center', force3D: true });
+          if (i > 0) gsap.set(card, { yPercent: 115 });
+        });
+
+        const tlMobile = gsap.timeline({
+          scrollTrigger: {
+            trigger: cardsContainerRef.current,
+            start: 'top top+=90',
+            end: () => `+=${window.innerHeight * (totalCards - 1) * 1.0}`,
+            pin: true,
+            scrub: 0.6,
+            anticipatePin: 1,
+            invalidateOnRefresh: true,
+          },
+        });
+
+        for (let i = 1; i < totalCards; i++) {
+          const stepLabel = `mob-step-${i}`;
+          tlMobile.to(cards[i], { yPercent: 0, ease: 'power1.inOut', duration: 1 }, stepLabel);
+
+          for (let p = 0; p < i; p++) {
+            const depth = i - p;
+            tlMobile.to(cards[p], { scale: Math.max(0.88, 1 - depth * 0.035), y: -depth * 10, ease: 'power1.inOut', duration: 1 }, stepLabel);
+            if (overlays[p]) {
+              tlMobile.to(overlays[p], { opacity: Math.min(0.42, depth * 0.14), ease: 'power1.inOut', duration: 1 }, stepLabel);
+            }
+          }
+        }
+      });
+    }, containerRef);
+
+    const timer = setTimeout(() => ScrollTrigger.refresh(), 300);
+    const handleWindowLoad = () => ScrollTrigger.refresh();
+    window.addEventListener('load', handleWindowLoad);
+
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('load', handleWindowLoad);
+      ctx.revert();
+    };
+  }, []);
+
+  return (
+    <div
+      ref={containerRef}
+      id="door"
+      className="service-page-wrapper min-h-screen pt-24 sm:pt-28 pb-20 px-4 sm:px-8 md:px-12 max-w-[84rem] mx-auto relative overflow-hidden"
+    >
+      <div className="mb-8">
+        <button
+          type="button"
+          onClick={handleBackClick}
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-pill text-xs font-mono font-medium hover:text-accent transition-colors cursor-pointer"
+        >
+          <ArrowLeft className="w-3.5 h-3.5" />
+          <span>Back to the doors</span>
+        </button>
+      </div>
+
+      <div className="max-w-3xl mb-12 sm:mb-16">
+        <h1 className="text-4xl sm:text-6xl md:text-7xl font-extrabold tracking-tight text-foreground mb-4">
+          UI/UX Design
+        </h1>
+        <p className="text-lg sm:text-xl text-foreground/75 leading-relaxed font-normal">
+          Interfaces researched, structured and prototyped: from user flows and wireframes to polished, interactive designs ready to build.
+        </p>
+      </div>
+
+      <div
+        ref={cardsContainerRef}
+        className="relative w-full h-[660px] sm:h-[680px] lg:h-[710px] mb-20 overflow-visible"
+      >
+        {PROJECTS.map((project, idx) => {
+          const zIndex = 10 * (idx + 1);
+          return (
+            <article
+              key={project.id}
+              ref={(el) => (cardRefs.current[idx] = el)}
+              style={{ zIndex }}
+              className="absolute inset-0 w-full h-full rounded-[32px] sm:rounded-[36px] bg-[#f5f3ee] dark:bg-[#1a1818] border border-black/[0.08] dark:border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.08)] dark:shadow-[0_25px_50px_rgba(0,0,0,0.5)] p-6 sm:p-10 lg:p-12 overflow-hidden flex flex-col justify-between select-none"
+            >
+              <div
+                ref={(el) => (overlayRefs.current[idx] = el)}
+                className="absolute inset-0 rounded-[32px] sm:rounded-[36px] bg-black pointer-events-none opacity-0 z-20 transition-opacity"
+              />
+
+              <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 items-center gap-6 lg:gap-8 h-full">
+                <div
+                  className={`flex flex-col justify-between h-full ${
+                    project.reverse ? 'lg:col-span-5 lg:order-2' : 'lg:col-span-5 lg:order-1'
+                  }`}
+                >
+                  <div className="pt-1 sm:pt-3">
+                    <div className="mb-3 sm:mb-5">
+                      <span className="text-xs sm:text-[13px] font-mono font-semibold tracking-wider text-foreground/60 dark:text-foreground/50 uppercase">
+                        {project.category}
+                      </span>
+                    </div>
+
+                    <h2 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold text-foreground tracking-tight mb-2 sm:mb-3">
+                      {project.title}
+                    </h2>
+                    <p className="text-sm sm:text-base font-normal text-foreground/65 dark:text-foreground/60 mb-4 sm:mb-6">
+                      {project.subtitle}
+                    </p>
+                    <p className="text-sm sm:text-[15px] lg:text-base text-foreground/80 dark:text-foreground/75 leading-relaxed max-w-xl mb-6">
+                      {project.description}
+                    </p>
+                    <div className="flex flex-wrap gap-2 mb-6">
+                      {project.tags.map((tag) => (
+                        <span
+                          key={tag}
+                          className="px-3.5 py-1.5 rounded-full text-xs font-sans bg-black/5 dark:bg-white/5 text-foreground/75 dark:text-foreground/70 border border-black/5 dark:border-white/10"
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+
+                    {project.hasButton && (
+                      <div className="mb-4">
+                        <a
+                          href={project.buttonUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-[#111111] dark:bg-white text-white dark:text-[#111111] text-xs sm:text-sm font-semibold hover:opacity-90 transition-opacity shadow-md"
+                        >
+                          <span>{project.buttonText}</span>
+                          <ArrowUpRight className="w-4 h-4" />
+                        </a>
+                      </div>
+                    )}
+                  </div>
+
+                  {project.badge && (
+                    <div className="flex items-center gap-2 pt-2 text-xs font-mono text-muted">
+                      <span className="w-1.5 h-1.5 rounded-full bg-foreground/50 inline-block" />
+                      <span>{project.badge}</span>
+                    </div>
+                  )}
+                </div>
+
+                <div
+                  className={`relative flex items-center justify-center select-none ${
+                    project.reverse ? 'lg:col-span-7 lg:order-1' : 'lg:col-span-7 lg:order-2'
+                  }`}
+                >
+                  <div className="relative w-full max-w-[500px] sm:max-w-[580px] lg:max-w-[650px] drop-shadow-[0_15px_30px_rgba(0,0,0,0.12)] dark:drop-shadow-[0_25px_40px_rgba(0,0,0,0.6)]">
+                    <img
+                      src={project.computerUrl}
+                      onError={(e) => {
+                        if (!e.target.dataset.triedFallback) {
+                          e.target.dataset.triedFallback = 'true';
+                          e.target.src = '.' + project.computerUrl;
+                        }
+                      }}
+                      alt={`${project.title} preview`}
+                      className="w-full h-auto object-contain select-none pointer-events-none"
+                      loading="eager"
+                      onLoad={() => ScrollTrigger.refresh()}
+                    />
+                  </div>
+                </div>
+              </div>
+            </article>
+          );
+        })}
+      </div>
+
+      <button
+        type="button"
+        onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+        className={`fixed bottom-6 right-6 z-40 w-11 h-11 rounded-full bg-[#111111] text-white dark:bg-[#f8f6f2] dark:text-[#111111] shadow-2xl flex items-center justify-center transition-all duration-300 cursor-pointer hover:scale-110 active:scale-95 ${
+          showScrollTop ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'
+        }`}
+        title="Scroll to top"
+        aria-label="Scroll to top"
+      >
+        <ArrowUp className="w-4 h-4" />
+      </button>
+    </div>
+  );
+}
