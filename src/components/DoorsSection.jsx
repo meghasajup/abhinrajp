@@ -9,6 +9,10 @@ import React, {
 import gsap from 'gsap';
 import '../styles/DoorPage.css';
 
+if (typeof window !== 'undefined') {
+  gsap.ticker.lagSmoothing(0);
+}
+
 export const DOORS_DATA = [
   {
     id: 'app-developer',
@@ -159,11 +163,15 @@ const DoorsSection = forwardRef(function DoorsSection(
     };
   }, []);
 
-  // Forward entrance animation (Opening door and zooming in)
+  // Forward entrance animation (Opening door and zooming in - Smooth Opacity)
   const runDoorEntranceAnimation = useCallback(
     (index) => {
       if (isTransitioningRef.current) return;
       isTransitioningRef.current = true;
+
+      if (containerRef.current) {
+        containerRef.current.classList.add('is-animating');
+      }
 
       setActiveDoor(index);
       setIsPressing(true);
@@ -179,10 +187,11 @@ const DoorsSection = forwardRef(function DoorsSection(
       const otherUnits = unitsRef.current.filter((_, i) => i !== index && Boolean(_));
 
       if (prefersReducedMotion) {
+        if (containerRef.current) containerRef.current.classList.remove('is-animating');
+        isTransitioningRef.current = false;
         if (onNavigate) {
           onNavigate(DOORS_DATA[index].route, { doorIndex: index });
         }
-        isTransitioningRef.current = false;
         return;
       }
 
@@ -194,6 +203,10 @@ const DoorsSection = forwardRef(function DoorsSection(
 
       const tl = gsap.timeline({
         onComplete: () => {
+          if (containerRef.current) {
+            containerRef.current.classList.remove('is-animating');
+          }
+          isTransitioningRef.current = false;
           if (onNavigate) {
             onNavigate(DOORS_DATA[index].route, { doorIndex: index });
           }
@@ -204,18 +217,26 @@ const DoorsSection = forwardRef(function DoorsSection(
 
       // 1. Lever depress
       if (lever) {
-        tl.to(lever, { rotation: -32, duration: 0.16, ease: 'power2.inOut' }, 0);
+        tl.to(lever, { rotation: -32, duration: 0.28, ease: 'sine.inOut' }, 0);
       }
 
-      // 2. Hide info panel
-      tl.to(['.dinfo', doorUnit?.querySelector('.click-to-enter')], { opacity: 0, duration: 0.15, ease: 'power1.out' }, 0);
+      // 2. Smoothly fade out info panel & hover badge
+      tl.to(
+        ['.dinfo', doorUnit?.querySelector('.click-to-enter')],
+        { opacity: 0, duration: 0.35, ease: 'sine.out', clearProps: 'transform' },
+        0
+      );
 
-      // 3. Door swing
+      // 3. Door swing open smoothly
       if (doorPanel) {
-        tl.to(doorPanel, { rotateY: 78, duration: 0.78, ease: 'power2.inOut' }, 0.1);
+        tl.to(
+          doorPanel,
+          { rotateY: 78, duration: 1.3, ease: 'power2.inOut', force3D: true },
+          0.16
+        );
       }
 
-      // 4. Camera zoom
+      // 4. Camera zoom in smoothly
       if (cameraRef.current) {
         tl.to(
           cameraRef.current,
@@ -224,34 +245,51 @@ const DoorsSection = forwardRef(function DoorsSection(
             x: metrics.moveX,
             y: metrics.moveY,
             transformOrigin: `${metrics.originPercentX}% ${metrics.originPercentY}%`,
-            duration: 0.95,
+            duration: 1.5,
             ease: 'power2.inOut',
+            force3D: true,
           },
-          0.2
+          0.3
         );
       }
 
-      // 5. Fade heading and footer
-      tl.to([headingRef.current, footerRef.current], { opacity: 0, duration: 0.45, ease: 'power1.inOut' }, 0.3);
+      // 5. Smooth opacity fade for heading and footer
+      tl.to(
+        [headingRef.current, footerRef.current],
+        { opacity: 0, duration: 0.85, ease: 'sine.inOut' },
+        0.35
+      );
 
-      // 6. Hide other doors
+      // 6. Smooth opacity fade for other doors
       if (otherUnits.length > 0) {
-        tl.to(otherUnits, { opacity: 0, duration: 0.4, ease: 'power1.out' }, 0.2);
+        tl.to(
+          otherUnits,
+          { opacity: 0, duration: 0.8, ease: 'sine.inOut' },
+          0.28
+        );
       }
 
-      // 7. Portal overlay
+      // 7. Smooth portal overlay fade-in
       if (portalOverlayRef.current) {
-        tl.to(portalOverlayRef.current, { opacity: 1, duration: 0.35, ease: 'power2.in' }, 0.75);
+        tl.to(
+          portalOverlayRef.current,
+          { opacity: 1, duration: 0.75, ease: 'sine.inOut' },
+          0.95
+        );
       }
     },
     [getDoorZoomMetrics, onNavigate]
   );
 
-  // Reverse exit animation (Closing door and zooming out)
+  // Reverse exit animation (Closing door and zooming out - Smooth Opacity)
   const runDoorExitAnimation = useCallback(
     (index) => {
       const targetIndex = index >= 0 ? index : openedDoor >= 0 ? openedDoor : 0;
       isTransitioningRef.current = true;
+
+      if (containerRef.current) {
+        containerRef.current.classList.add('is-animating');
+      }
 
       const doorUnit = unitsRef.current[targetIndex];
       const doorPanel = doorPanelRefs.current[targetIndex];
@@ -263,6 +301,7 @@ const DoorsSection = forwardRef(function DoorsSection(
         window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
       if (prefersReducedMotion) {
+        if (containerRef.current) containerRef.current.classList.remove('is-animating');
         if (cameraRef.current) gsap.set(cameraRef.current, { scale: 1, x: 0, y: 0 });
         if (doorPanel) gsap.set(doorPanel, { rotateY: 0 });
         if (lever) gsap.set(lever, { rotation: 0 });
@@ -282,17 +321,18 @@ const DoorsSection = forwardRef(function DoorsSection(
         activeTimelineRef.current.kill();
       }
 
-      // Start zoomed in at the door
+      // Set initial zoomed-in state smoothly before timeline starts
       if (cameraRef.current) {
         gsap.set(cameraRef.current, {
           scale: metrics.scale,
           x: metrics.moveX,
           y: metrics.moveY,
           transformOrigin: `${metrics.originPercentX}% ${metrics.originPercentY}%`,
+          force3D: true,
         });
       }
 
-      if (doorPanel) gsap.set(doorPanel, { rotateY: 78 });
+      if (doorPanel) gsap.set(doorPanel, { rotateY: 78, force3D: true });
       if (lever) gsap.set(lever, { rotation: -32 });
       if (headingRef.current) gsap.set(headingRef.current, { opacity: 0 });
       if (footerRef.current) gsap.set(footerRef.current, { opacity: 0 });
@@ -304,6 +344,15 @@ const DoorsSection = forwardRef(function DoorsSection(
 
       const reverseTl = gsap.timeline({
         onComplete: () => {
+          if (containerRef.current) {
+            containerRef.current.classList.remove('is-animating');
+          }
+
+          if (headingRef.current) gsap.set(headingRef.current, { clearProps: 'opacity' });
+          if (footerRef.current) gsap.set(footerRef.current, { clearProps: 'opacity' });
+          if (otherUnits.length > 0) gsap.set(otherUnits, { clearProps: 'opacity' });
+          if (doorPanel) gsap.set(doorPanel, { clearProps: 'transform' });
+
           setActiveDoor(-1);
           setOpenedDoor(-1);
           setIsPressing(false);
@@ -321,12 +370,16 @@ const DoorsSection = forwardRef(function DoorsSection(
 
       activeTimelineRef.current = reverseTl;
 
-      // 1. Fade portal overlay
+      // 1. Smoothly fade out portal overlay
       if (portalOverlayRef.current) {
-        reverseTl.to(portalOverlayRef.current, { opacity: 0, duration: 0.28, ease: 'power1.out' }, 0);
+        reverseTl.to(
+          portalOverlayRef.current,
+          { opacity: 0, duration: 0.7, ease: 'sine.inOut' },
+          0
+        );
       }
 
-      // 2. Camera zooms out to normal view
+      // 2. Camera zooms out smoothly to normal view
       if (cameraRef.current) {
         reverseTl.to(
           cameraRef.current,
@@ -334,29 +387,46 @@ const DoorsSection = forwardRef(function DoorsSection(
             scale: 1,
             x: 0,
             y: 0,
-            duration: 0.95,
+            duration: 1.5,
             ease: 'power2.inOut',
+            force3D: true,
           },
-          0.04
+          0.1
         );
       }
 
-      // 3. Fade heading and footer back in
-      reverseTl.to([headingRef.current, footerRef.current], { opacity: 1, duration: 0.55, ease: 'power1.out' }, 0.45);
+      // 3. Smooth opacity fade-in for heading and footer
+      reverseTl.to(
+        [headingRef.current, footerRef.current],
+        { opacity: 1, duration: 0.95, ease: 'sine.inOut' },
+        0.55
+      );
 
-      // 4. Fade neighboring doors back in
+      // 4. Smooth opacity fade-in for neighboring doors
       if (otherUnits.length > 0) {
-        reverseTl.to(otherUnits, { opacity: 1, duration: 0.5, ease: 'power1.out' }, 0.4);
+        reverseTl.to(
+          otherUnits,
+          { opacity: 1, duration: 0.9, ease: 'sine.inOut' },
+          0.48
+        );
       }
 
-      // 5. Door swings closed
+      // 5. Door swings closed smoothly
       if (doorPanel) {
-        reverseTl.to(doorPanel, { rotateY: 0, duration: 0.62, ease: 'power2.inOut' }, 0.62);
+        reverseTl.to(
+          doorPanel,
+          { rotateY: 0, duration: 1.2, ease: 'power2.inOut', force3D: true },
+          0.85
+        );
       }
 
-      // 6. Lever handle returns to resting position
+      // 6. Lever handle returns smoothly to resting position
       if (lever) {
-        reverseTl.to(lever, { rotation: 0, duration: 0.22, ease: 'power2.out' }, 0.9);
+        reverseTl.to(
+          lever,
+          { rotation: 0, duration: 0.4, ease: 'sine.inOut' },
+          1.75
+        );
       }
     },
     [getDoorZoomMetrics, openedDoor, onExitComplete]
@@ -375,10 +445,10 @@ const DoorsSection = forwardRef(function DoorsSection(
     triggerExit: (index) => runDoorExitAnimation(index),
   }));
 
-  // Information panel positioning
+  // Information panel positioning (paused while transitioning to prevent re-render jitter)
   useEffect(() => {
     if (activeDoor < 0 || !wallRef.current || isTransitioningRef.current) {
-      setDinfoPos((prev) => ({ ...prev, visible: false }));
+      setDinfoPos((prev) => (prev.visible ? { ...prev, visible: false } : prev));
       return;
     }
 
@@ -427,7 +497,9 @@ const DoorsSection = forwardRef(function DoorsSection(
       setActiveDoor((prev) => (prev < 0 ? 0 : (prev + 1) % DOORS_DATA.length));
     } else if (e.key === 'ArrowLeft') {
       e.preventDefault();
-      setActiveDoor((prev) => (prev < 0 ? DOORS_DATA.length - 1 : (prev - 1 + DOORS_DATA.length) % DOORS_DATA.length));
+      setActiveDoor((prev) =>
+        prev < 0 ? DOORS_DATA.length - 1 : (prev - 1 + DOORS_DATA.length) % DOORS_DATA.length
+      );
     } else if (e.key === 'Escape') {
       if (!isTransitioningRef.current) setActiveDoor(-1);
     }
@@ -445,7 +517,6 @@ const DoorsSection = forwardRef(function DoorsSection(
       {/* Main Camera Stage */}
       <div ref={cameraRef} className="doors-camera-stage">
         <main className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 md:px-8 pt-6 sm:pt-8 pb-0 flex flex-col flex-1 min-h-0 items-center justify-between">
-          
           {/* Heading */}
           <h1
             ref={headingRef}
@@ -479,7 +550,7 @@ const DoorsSection = forwardRef(function DoorsSection(
             }}
           >
             {/* Desktop Information Panel */}
-            {activeDoor >= 0 && (
+            {activeDoor >= 0 && !isTransitioningRef.current && (
               <div
                 role="tooltip"
                 className={`dinfo hidden lg:block ${dinfoPos.visible ? 'on' : ''}`}
@@ -545,13 +616,6 @@ const DoorsSection = forwardRef(function DoorsSection(
                           doorPanelRefs.current[idx] = el;
                         }}
                         className="door"
-                        style={{
-                          transform: isOpened
-                            ? 'rotateY(78deg)'
-                            : isHovered
-                            ? 'rotateY(16deg)'
-                            : 'rotateY(0deg)',
-                        }}
                       >
                         <span className="door__flute" />
                         <span className="plate">
@@ -579,7 +643,7 @@ const DoorsSection = forwardRef(function DoorsSection(
           </div>
 
           {/* Mobile Information Drawer */}
-          {activeDoor >= 0 && (
+          {activeDoor >= 0 && !isTransitioningRef.current && (
             <div className="w-full max-w-md lg:hidden mt-4 p-4 rounded-2xl bg-white/95 dark:bg-neutral-900/95 border border-neutral-200 dark:border-neutral-800 shadow-xl">
               <h3 className="text-xl font-bold mb-1 text-[var(--foreground)]">
                 {DOORS_DATA[activeDoor].title}
@@ -589,7 +653,10 @@ const DoorsSection = forwardRef(function DoorsSection(
               </p>
               <div className="space-y-1.5 border-t border-neutral-200 dark:border-neutral-800 pt-2">
                 {DOORS_DATA[activeDoor].features.map((feature, i) => (
-                  <div key={i} className="flex items-center text-xs text-neutral-700 dark:text-neutral-300">
+                  <div
+                    key={i}
+                    className="flex items-center text-xs text-neutral-700 dark:text-neutral-300"
+                  >
                     <span className="mr-2 text-[#a88a4b] font-bold">✔</span>
                     {feature}
                   </div>

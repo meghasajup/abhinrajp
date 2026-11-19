@@ -21,6 +21,7 @@ import './styles/DoorPage.css';
 
 if (typeof window !== 'undefined') {
   gsap.registerPlugin(ScrollTrigger);
+  gsap.ticker.lagSmoothing(0);
 }
 
 export default function App() {
@@ -139,8 +140,8 @@ export default function App() {
           opacity: 1,
           scale: 1,
           borderRadius: '0px',
-          duration: 0.55,
-          ease: 'power2.out',
+          duration: 0.8,
+          ease: 'sine.out',
           clearProps: 'borderRadius,transform',
           onComplete: () => {
             isTransitioningRef.current = false;
@@ -157,25 +158,28 @@ export default function App() {
   const handleExitComplete = useCallback(() => {
     setIsDoorsExiting(false);
 
-    // If header navigation triggered a chain transition, open the new door immediately!
+    // If header navigation triggered a chain transition, pause briefly after door closes, then open next door
     if (pendingRoute && pendingRoute !== '/') {
       const nextRoute = pendingRoute;
       const nextDoorIdx = pendingDoorIndex;
 
       setPendingRoute(null);
       setPendingDoorIndex(-1);
-      setActiveDoorIndex(nextDoorIdx);
+      setActiveDoorIndex(-1);
 
-      if (doorsSectionRef.current && doorsSectionRef.current.triggerEntrance) {
-        doorsSectionRef.current.triggerEntrance(nextDoorIdx);
-      } else {
-        setCurrentRoute(nextRoute);
-        try {
-          window.history.pushState({ route: nextRoute, doorIndex: nextDoorIdx }, '', nextRoute);
-        } catch (e) {
-          window.location.hash = nextRoute.replace(/\//g, '');
+      setTimeout(() => {
+        setActiveDoorIndex(nextDoorIdx);
+        if (doorsSectionRef.current && doorsSectionRef.current.triggerEntrance) {
+          doorsSectionRef.current.triggerEntrance(nextDoorIdx);
+        } else {
+          setCurrentRoute(nextRoute);
+          try {
+            window.history.pushState({ route: nextRoute, doorIndex: nextDoorIdx }, '', nextRoute);
+          } catch (e) {
+            window.location.hash = nextRoute.replace(/\//g, '');
+          }
         }
-      }
+      }, 350);
       return;
     }
 
@@ -191,7 +195,7 @@ export default function App() {
       if (doorsEl) {
         doorsEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
-    }, 40);
+    }, 60);
   }, [pendingRoute, pendingDoorIndex]);
 
   // MASTER NAVIGATION HANDLER
@@ -235,7 +239,6 @@ export default function App() {
           return;
         }
 
-        // CRITICAL: Instantly scroll window directly to the doors section (bypassing Hero section)
         const doorsEl = document.getElementById('doors');
         if (doorsEl) {
           doorsEl.scrollIntoView({ behavior: 'instant', block: 'center' });
@@ -243,13 +246,12 @@ export default function App() {
           window.scrollTo({ top: window.innerHeight, behavior: 'instant' });
         }
 
-        // Shrink service page card and play reverse door close animation
         gsap.to(serviceWrapperRef.current, {
           opacity: 0,
           scale: 0.94,
           borderRadius: '48px',
-          duration: 0.38,
-          ease: 'power2.in',
+          duration: 0.6,
+          ease: 'sine.inOut',
           onComplete: () => {
             setActiveDoorIndex(exitIdx);
             setIsDoorsExiting(true);
@@ -310,8 +312,8 @@ export default function App() {
           opacity: 0,
           scale: 0.94,
           borderRadius: '48px',
-          duration: 0.38,
-          ease: 'power2.in',
+          duration: 0.6,
+          ease: 'sine.inOut',
           onComplete: () => {
             setActiveDoorIndex(exitIdx);
             setIsDoorsExiting(true);
@@ -355,8 +357,8 @@ export default function App() {
           opacity: 0,
           scale: 0.94,
           borderRadius: '48px',
-          duration: 0.32,
-          ease: 'power2.in',
+          duration: 0.5,
+          ease: 'sine.inOut',
           onComplete: () => {
             setCurrentRoute(target);
             try {
@@ -429,7 +431,7 @@ export default function App() {
       case '/ui-ux/':
       case '/ui-ux':
         return (
-          <div ref= {serviceWrapperRef} className="service-page-wrapper">
+          <div ref={serviceWrapperRef} className="service-page-wrapper">
             <UiUxDesign onNavigate={navigateTo} onOpenContact={openContact} />
           </div>
         );
