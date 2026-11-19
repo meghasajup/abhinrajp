@@ -1,11 +1,4 @@
-import React, {
-  useState,
-  useEffect,
-  useRef,
-  useCallback,
-  forwardRef,
-  useImperativeHandle,
-} from 'react';
+import React, {useState, useEffect, useRef, useCallback, forwardRef, useImperativeHandle,} from 'react';
 import gsap from 'gsap';
 import '../styles/DoorPage.css';
 
@@ -512,11 +505,7 @@ const DoorsSection = forwardRef(function DoorsSection(
   };
 
   return (
-    <div
-      ref={containerRef}
-      id="doors"
-      className="relative h-screen max-h-screen bg-[var(--background)] text-[var(--foreground)] flex flex-col overflow-hidden select-none transition-colors duration-500 m-0 p-0"
-    >
+    <div ref={containerRef} id="doors" className="relative h-screen max-h-screen bg-[var(--background)] text-[var(--foreground)] flex flex-col overflow-hidden select-none transition-colors duration-500 m-0 p-0">
       {/* Portal Transition Overlay */}
       <div ref={portalOverlayRef} className="door-portal-overlay" aria-hidden="true" />
 
@@ -524,48 +513,23 @@ const DoorsSection = forwardRef(function DoorsSection(
       <div ref={cameraRef} className="doors-camera-stage">
         <main className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 md:px-8 pt-6 sm:pt-8 pb-0 flex flex-col flex-1 min-h-0 items-center justify-between">
           {/* Heading */}
-          <h1
-            ref={headingRef}
-            className={`doors-heading ${headingVisible ? 'doors-heading-visible' : ''}`}
-            aria-label="Magic happens behind the doors"
-          >
+          <h1 ref={headingRef} className={`doors-heading ${headingVisible ? 'doors-heading-visible' : ''}`} aria-label="Magic happens behind the doors">
             {'Magic happens behind the doors'.split('').map((letter, index) => (
-              <span
-                key={index}
-                className="doors-heading-letter"
-                style={{ transitionDelay: `${index * 0.035}s` }}
-                aria-hidden="true"
-              >
+              <span key={index} className="doors-heading-letter" style={{ transitionDelay: `${index * 0.035}s` }} aria-hidden="true">
                 {letter === ' ' ? '\u00A0' : letter}
               </span>
             ))}
           </h1>
 
           {/* Three Doors Wall */}
-          <div
-            ref={wallRef}
-            role="region"
-            aria-label="Available services"
-            className={`relative w-full max-w-6xl flex flex-1 min-h-0 items-end justify-center gap-4 sm:gap-6 md:gap-8 lg:gap-10 pb-0 mt-auto ${
-              activeDoor >= 0 ? 'doors-focus' : ''
-            }`}
+          <div ref={wallRef} role="region" aria-label="Available services" className={`relative w-full max-w-6xl flex flex-1 min-h-0 items-end justify-center gap-4 sm:gap-6 md:gap-8 lg:gap-10 pb-0 mt-auto ${ activeDoor >= 0 ? 'doors-focus' : ''}`}
             onMouseLeave={() => {
               if (openedDoor < 0 && !isTransitioningRef.current) {
                 setActiveDoor(-1);
-              }
-            }}
-          >
+              }}}>
             {/* Desktop Information Panel */}
             {activeDoor >= 0 && !isTransitioningRef.current && (
-              <div
-                role="tooltip"
-                className={`dinfo hidden lg:block ${dinfoPos.visible ? 'on' : ''}`}
-                style={{
-                  left: `${dinfoPos.left}px`,
-                  top: `${dinfoPos.top}px`,
-                  width: `${dinfoPos.width}px`,
-                }}
-              >
+              <div role="tooltip" className={`dinfo hidden lg:block ${dinfoPos.visible ? 'on' : ''}`} style={{left: `${dinfoPos.left}px`, top: `${dinfoPos.top}px`, width: `${dinfoPos.width}px`,}}>
                 <h3 className="dinfo__h">{DOORS_DATA[activeDoor].title}</h3>
                 <p className="dinfo__t">{DOORS_DATA[activeDoor].subtitle}</p>
                 <ul className="dinfo__p">
@@ -583,23 +547,8 @@ const DoorsSection = forwardRef(function DoorsSection(
               const isPress = isPressing && activeDoor === idx;
 
               return (
-                <div
-                  key={door.id}
-                  ref={(el) => {
-                    unitsRef.current[idx] = el;
-                  }}
-                  className={`unit ${isHovered ? 'on' : ''} ${isPress ? 'press' : ''}`}
-                  style={{
-                    '--door': door.color,
-                    '--door-dk': door.colorDark,
-                  }}
-                >
-                  <button
-                    type="button"
-                    tabIndex={0}
-                    aria-label={`Open the ${door.title} door`}
-                    aria-expanded={isOpened}
-                    className="doorway"
+                <div key={door.id} ref={(el) => { unitsRef.current[idx] = el;}} className={`unit ${isHovered ? 'on' : ''} ${isPress ? 'press' : ''}`} style={{'--door': door.color,'--door-dk': door.colorDark,}}>
+                  <button type="button" tabIndex={0} aria-label={`Open the ${door.title} door`} aria-expanded={isOpened} className="doorway"
                     onMouseEnter={() => {
                       if (!isTransitioningRef.current) setActiveDoor(idx);
                     }}
@@ -611,18 +560,11 @@ const DoorsSection = forwardRef(function DoorsSection(
                         setActiveDoor(-1);
                       }
                     }}
-                    onClick={(e) => handleDoorClick(idx, e)}
-                    onKeyDown={(e) => handleKeyDown(e, idx)}
-                  >
+                    onClick={(e) => handleDoorClick(idx, e)} onKeyDown={(e) => handleKeyDown(e, idx)}>
                     <span className="casing" />
                     <span className="opening">
                       <span className="room" />
-                      <span
-                        ref={(el) => {
-                          doorPanelRefs.current[idx] = el;
-                        }}
-                        className="door"
-                      >
+                      <span ref={(el) => {doorPanelRefs.current[idx] = el;}} className="door">
                         <span className="door__flute" />
                         <span className="plate">
                           <span>{door.plateTop}</span>
@@ -630,12 +572,7 @@ const DoorsSection = forwardRef(function DoorsSection(
                           <span>{door.plateBottom}</span>
                         </span>
                         <span className="handle">
-                          <span
-                            ref={(el) => {
-                              leverRefs.current[idx] = el;
-                            }}
-                            className="handle__lever"
-                          />
+                          <span ref={(el) => { leverRefs.current[idx] = el;}} className="handle__lever"/>
                           <span className="handle__lock" />
                         </span>
                       </span>
@@ -659,10 +596,7 @@ const DoorsSection = forwardRef(function DoorsSection(
               </p>
               <div className="space-y-1.5 border-t border-neutral-200 dark:border-neutral-800 pt-2">
                 {DOORS_DATA[activeDoor].features.map((feature, i) => (
-                  <div
-                    key={i}
-                    className="flex items-center text-xs text-neutral-700 dark:text-neutral-300"
-                  >
+                  <div key={i} className="flex items-center text-xs text-neutral-700 dark:text-neutral-300">
                     <span className="mr-2 text-[#a88a4b] font-bold">✔</span>
                     {feature}
                   </div>
@@ -673,10 +607,7 @@ const DoorsSection = forwardRef(function DoorsSection(
         </main>
 
         {/* Architectural Baseboard */}
-        <footer
-          ref={footerRef}
-          className="architectural-baseboard w-full relative z-30 flex-shrink-0 pointer-events-none select-none"
-        >
+        <footer ref={footerRef} className="architectural-baseboard w-full relative z-30 flex-shrink-0 pointer-events-none select-none">
           <div className="baseboard-gold-line" />
           <div className="baseboard-upper" />
           <div className="baseboard-main" />

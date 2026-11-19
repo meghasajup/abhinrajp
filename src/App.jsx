@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-
 import Header from './components/Header.jsx';
 import ThemeCord from './components/ThemeCord.jsx';
 import Hero from './components/Hero.jsx';
@@ -10,12 +9,10 @@ import StorySection from './components/StorySection.jsx';
 import Footer from './components/Footer.jsx';
 import MenuDrawer from './components/MenuDrawer.jsx';
 import HireModal from './components/HireModal.jsx';
-
 import AppDevelopment from './components/AppDevelopment.jsx';
 import UiUxDesign from './components/UX-Design.jsx';
 import AppDeployment from './components/AppDeplyment.jsx';
 import ContactPage from './components/ContactPage.jsx';
-
 import { ArrowUp } from 'lucide-react';
 import './styles/DoorPage.css';
 

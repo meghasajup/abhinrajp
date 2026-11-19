@@ -75,7 +75,6 @@ export default function AppDeployment({
   const cardsContainerRef = useRef(null);
   const cardRefs = useRef([]);
   const overlayRefs = useRef([]);
-
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [isLeaving, setIsLeaving] = useState(false);
 
@@ -91,7 +90,7 @@ export default function AppDeployment({
     });
   }, []);
 
-  // Cinematic page entrance through the door portal
+  // Entrance through the door portal
   useEffect(() => {
     const prefersReducedMotion =
       typeof window !== 'undefined' &&
@@ -261,11 +260,9 @@ export default function AppDeployment({
 
             timeline.to({}, { duration: readingPause });
           }
-
           return () => timeline.scrollTrigger?.kill();
         }
       );
-
       refreshFrame = requestAnimationFrame(() => ScrollTrigger.refresh());
     }, containerRef);
 
@@ -283,11 +280,8 @@ export default function AppDeployment({
 
   return (
     <>
-      {/* Main surface in warm ash/grey (#ebe4e0) */}
-      <div
-        ref={containerRef}
-        className="service-page-wrapper bg-[#faf5f2] dark:bg-[#1a1818] min-h-screen pt-24 sm:pt-28 pb-12 px-4 sm:px-8 md:px-12 w-full max-w-[84rem] mx-auto relative overflow-visible flex flex-col justify-between rounded-[28px] sm:rounded-[36px] md:rounded-[40px]"
-      >
+      {/* Main surface */}
+      <div ref={containerRef} className="service-page-wrapper bg-[#faf5f2] dark:bg-[#1a1818] min-h-screen pt-24 sm:pt-28 pb-12 px-4 sm:px-8 md:px-12 w-full max-w-[84rem] mx-auto relative overflow-visible flex flex-col justify-between rounded-[28px] sm:rounded-[36px] md:rounded-[40px]">
         <div className="w-full">
           {/* Page Header */}
           <div className="max-w-3xl mb-10">
@@ -295,37 +289,21 @@ export default function AppDeployment({
               App Development
             </h1>
             <p className="text-lg sm:text-xl text-foreground/75 leading-relaxed font-normal">
-              iOS apps and games, designed and built end to end: from the first screen and the small
-              interactions to the details that make an app feel at home on iPhone.
+              iOS apps and games, designed and built end to end: from the first screen and the small interactions to the details that make an app feel at home on iPhone.
             </p>
           </div>
 
           {/* Stacked Cards Parent Stage */}
-          <div
-            ref={cardsContainerRef}
-            className="relative isolate w-full h-[580px] sm:h-[620px] lg:h-[640px] mb-8 overflow-visible"
-          >
+          <div ref={cardsContainerRef} className="relative isolate w-full h-[580px] sm:h-[620px] lg:h-[640px] mb-8 overflow-visible">
             {PROJECTS.map((project, idx) => {
               const zIndex = 10 * (idx + 1);
               return (
-                <article
-                  key={project.id}
-                  ref={(el) => (cardRefs.current[idx] = el)}
-                  style={{ zIndex }}
-                  className="absolute top-0 inset-x-0 w-full h-full rounded-[32px] sm:rounded-[36px] bg-white dark:bg-[#1e1b1b] border border-black/[0.06] dark:border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.06)] dark:shadow-[0_25px_50px_rgba(0,0,0,0.5)] p-6 sm:p-10 lg:p-12 overflow-hidden flex flex-col justify-between select-none"
-                >
-                  {/* Dimming overlay when card recedes into stack */}
-                  <div
-                    ref={(el) => (overlayRefs.current[idx] = el)}
-                    className="absolute inset-0 rounded-[32px] sm:rounded-[36px] bg-black pointer-events-none opacity-0 z-20"
-                  />
-
+                <article key={project.id} ref={(el) => (cardRefs.current[idx] = el)} style={{ zIndex }} className="absolute top-0 inset-x-0 w-full h-full rounded-[32px] sm:rounded-[36px] bg-white dark:bg-[#1e1b1b] border border-black/[0.06] dark:border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.06)] dark:shadow-[0_25px_50px_rgba(0,0,0,0.5)] p-6 sm:p-10 lg:p-12 overflow-hidden flex flex-col justify-between select-none">
+                  {/* card recedes into stack */}
+                  <div ref={(el) => (overlayRefs.current[idx] = el)} className="absolute inset-0 rounded-[32px] sm:rounded-[36px] bg-black pointer-events-none opacity-0 z-20" />
                   <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 items-center gap-6 lg:gap-10 h-full">
                     {/* Text Content Column */}
-                    <div
-                      className={`flex flex-col justify-between h-full ${project.reverse ? 'lg:col-span-7 lg:order-2' : 'lg:col-span-7 lg:order-1'
-                        }`}
-                    >
+                    <div className={`flex flex-col justify-between h-full ${project.reverse ? 'lg:col-span-7 lg:order-2' : 'lg:col-span-7 lg:order-1'}`}>
                       <div>
                         <div className="flex items-center justify-between gap-3 mb-4">
                           <div className="flex items-center gap-3">
@@ -361,10 +339,7 @@ export default function AppDeployment({
                         </p>
                         <div className="flex flex-wrap gap-2 mb-6">
                           {project.tags.map((tag) => (
-                            <span
-                              key={tag}
-                              className="px-3.5 py-1.5 rounded-full text-xs font-mono bg-black/[0.04] dark:bg-white/5 text-foreground/75 dark:text-foreground/70 border border-black/5 dark:border-white/5"
-                            >
+                            <span key={tag} className="px-3.5 py-1.5 rounded-full text-xs font-mono bg-black/[0.04] dark:bg-white/5 text-foreground/75 dark:text-foreground/70 border border-black/5 dark:border-white/5">
                               {tag}
                             </span>
                           ))}
@@ -378,10 +353,7 @@ export default function AppDeployment({
                     </div>
 
                     {/* Phone Mockup Column */}
-                    <div
-                      className={`relative flex items-center justify-center select-none ${project.reverse ? 'lg:col-span-5 lg:order-1' : 'lg:col-span-5 lg:order-2'
-                        }`}
-                    >
+                    <div className={`relative flex items-center justify-center select-none ${project.reverse ? 'lg:col-span-5 lg:order-1' : 'lg:col-span-5 lg:order-2'}`}>
                       <div className="relative w-[220px] sm:w-[250px] lg:w-[270px] drop-shadow-[0_20px_35px_rgba(0,0,0,0.18)] dark:drop-shadow-[0_25px_40px_rgba(0,0,0,0.65)]">
                         <img
                           src={project.phoneUrl}
@@ -409,34 +381,16 @@ export default function AppDeployment({
       {typeof document !== 'undefined' &&
         createPortal(
           <>
-            {/* Outer surround in warm cream/white (#f5f3ee) */}
+            {/* Outer surround */}
             <div
               aria-hidden="true"
               style={{
-                position: 'fixed',
-                inset: 0,
-                zIndex: 9998,
-                boxSizing: 'border-box',
-                border: '2px solid #d5d0cd',
-                borderRadius: 'clamp(44px, 5vw, 88px)',
-                boxShadow: `
-      0 0 0 100vmax #ffffff,
-      inset 0 10px 24px -6px rgba(130, 118, 112, 0.28),
-      inset 0 3px 8px -2px rgba(255, 255, 255, 0.9),
-      inset 0 -10px 22px -6px rgba(130, 118, 112, 0.2),
-      inset 10px 0 22px -6px rgba(130, 118, 112, 0.16),
-      inset -10px 0 22px -6px rgba(130, 118, 112, 0.16)
-    `,
+                position: 'fixed', inset: 0, zIndex: 9998, boxSizing: 'border-box', border: '2px solid #d5d0cd', borderRadius: 'clamp(44px, 5vw, 88px)',
+                boxShadow: `0 0 0 100vmax #ffffff, inset 0 10px 24px -6px rgba(130, 118, 112, 0.28), inset 0 3px 8px -2px rgba(255, 255, 255, 0.9), inset 0 -10px 22px -6px rgba(130, 118, 112, 0.2), inset 10px 0 22px -6px rgba(130, 118, 112, 0.16), inset -10px 0 22px -6px rgba(130, 118, 112, 0.16)`,
                 pointerEvents: 'none',
-              }}
-            />
+              }} />
 
-            <button
-              type="button"
-              onClick={handleBackClick}
-              style={{ position: 'fixed', left: '16px', bottom: '56px', zIndex: 9999 }}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-pill text-xs font-mono font-medium hover:text-accent transition-colors cursor-pointer shadow-sm"
-            >
+            <button type="button" onClick={handleBackClick} style={{ position: 'fixed', left: '16px', bottom: '56px', zIndex: 9999 }} className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-pill text-xs font-mono font-medium hover:text-accent transition-colors cursor-pointer shadow-sm">
               <ArrowLeft className="w-3.5 h-3.5" />
               <span>Back to the doors</span>
             </button>
@@ -447,11 +401,7 @@ export default function AppDeployment({
               style={{ position: 'fixed', right: '24px', bottom: '24px', zIndex: 9999 }}
               className={`w-11 h-11 rounded-full bg-[#111111] text-white dark:bg-[#f8f6f2] dark:text-[#111111] shadow-2xl flex items-center justify-center transition-all duration-300 cursor-pointer hover:scale-110 active:scale-95 ${showScrollTop
                 ? 'opacity-100 translate-y-0'
-                : 'opacity-0 translate-y-4 pointer-events-none'
-                }`}
-              title="Scroll to top"
-              aria-label="Scroll to top"
-            >
+                : 'opacity-0 translate-y-4 pointer-events-none'}`} title="Scroll to top" aria-label="Scroll to top">
               <ArrowUp className="w-4 h-4" />
             </button>
           </>,

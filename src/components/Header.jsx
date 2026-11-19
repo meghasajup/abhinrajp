@@ -115,7 +115,6 @@ export default function Header({
     }
 
     if (!onNavigate) return;
-
     // If clicking a door service link
     if (link.route && link.route !== '/') {
       if (currentRoute === link.route) {
