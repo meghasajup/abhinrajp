@@ -24,6 +24,13 @@ if (typeof window !== 'undefined') {
   gsap.ticker.lagSmoothing(0);
 }
 
+const getDoorIndexFromTarget = (target = '') => {
+  if (target.includes('app-developer')) return 0;
+  if (target.includes('ui-ux')) return 1;
+  if (target.includes('app-deployment')) return 2;
+  return -1;
+};
+
 export default function App() {
   const [currentRoute, setCurrentRoute] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -59,6 +66,16 @@ export default function App() {
   const isTransitioningRef = useRef(false);
   const serviceWrapperRef = useRef(null);
   const doorsSectionRef = useRef(null);
+  const chainTimeoutRef = useRef(null);
+  const entranceTimeoutRef = useRef(null);
+  const afterExitTargetRef = useRef(null);
+
+  useEffect(() => {
+    return () => {
+      if (chainTimeoutRef.current) clearTimeout(chainTimeoutRef.current);
+      if (entranceTimeoutRef.current) clearTimeout(entranceTimeoutRef.current);
+    };
+  }, []);
 
   // PRELOADER
   useEffect(() => {
@@ -154,11 +171,38 @@ export default function App() {
     }
   }, [currentRoute]);
 
+  const scrollAfterDoorClose = useCallback((scrollTarget) => {
+    setTimeout(() => {
+      if (scrollTarget === '#home') {
+        const heroEl = document.getElementById('home');
+        if (heroEl) {
+          heroEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        } else {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+        return;
+      }
+
+      if (scrollTarget && scrollTarget.startsWith('#')) {
+        const targetEl = document.querySelector(scrollTarget);
+        if (targetEl) {
+          targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          return;
+        }
+      }
+
+      const doorsEl = document.getElementById('doors');
+      if (doorsEl) {
+        doorsEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }, 60);
+  }, []);
+
   // COMPLETE HANDLER FOR REVERSE DOOR EXIT ANIMATION
   const handleExitComplete = useCallback(() => {
     setIsDoorsExiting(false);
 
-    // If header navigation triggered a chain transition, pause briefly after door closes, then open next door
+    // If header navigation triggered a chain transition, scroll to #doors and open next door
     if (pendingRoute && pendingRoute !== '/') {
       const nextRoute = pendingRoute;
       const nextDoorIdx = pendingDoorIndex;
@@ -166,22 +210,34 @@ export default function App() {
       setPendingRoute(null);
       setPendingDoorIndex(-1);
       setActiveDoorIndex(-1);
+      afterExitTargetRef.current = null;
 
-      setTimeout(() => {
+      const doorsEl = document.getElementById('doors');
+      if (doorsEl) {
+        doorsEl.scrollIntoView({ behavior: 'instant', block: 'center' });
+      }
+
+      if (chainTimeoutRef.current) clearTimeout(chainTimeoutRef.current);
+      chainTimeoutRef.current = setTimeout(() => {
         setActiveDoorIndex(nextDoorIdx);
-        if (doorsSectionRef.current && doorsSectionRef.current.triggerEntrance) {
+        if (doorsSectionRef.current?.triggerEntrance) {
+          isTransitioningRef.current = false;
           doorsSectionRef.current.triggerEntrance(nextDoorIdx);
         } else {
           setCurrentRoute(nextRoute);
+          isTransitioningRef.current = false;
           try {
             window.history.pushState({ route: nextRoute, doorIndex: nextDoorIdx }, '', nextRoute);
           } catch (e) {
             window.location.hash = nextRoute.replace(/\//g, '');
           }
         }
-      }, 350);
+      }, 250);
       return;
     }
+
+    const scrollTarget = afterExitTargetRef.current;
+    afterExitTargetRef.current = null;
 
     setActiveDoorIndex(-1);
     isTransitioningRef.current = false;
@@ -190,18 +246,34 @@ export default function App() {
       ScrollTrigger.refresh();
     }
 
-    setTimeout(() => {
-      const doorsEl = document.getElementById('doors');
-      if (doorsEl) {
-        doorsEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
-    }, 60);
-  }, [pendingRoute, pendingDoorIndex]);
+    scrollAfterDoorClose(scrollTarget);
+  }, [pendingRoute, pendingDoorIndex, scrollAfterDoorClose]);
 
   // MASTER NAVIGATION HANDLER
   const navigateTo = useCallback(
     (target, options = {}) => {
-      const { doorIndex, isBack } = options;
+      const { doorIndex, isBack, skipDoorAnimation, afterExitScrollTarget } = options;
+
+      // Called when DoorsSection finishes its entrance animation
+      if (skipDoorAnimation) {
+        const resolvedIdx = doorIndex !== undefined ? doorIndex : getDoorIndexFromTarget(target);
+        if (resolvedIdx >= 0) {
+          setActiveDoorIndex(resolvedIdx);
+        }
+        setIsDoorsExiting(false);
+        setCurrentRoute(target);
+        setIsMenuOpen(false);
+        try {
+          window.history.pushState(
+            { route: target, doorIndex: resolvedIdx },
+            '',
+            target
+          );
+        } catch (e) {
+          window.location.hash = target.replace(/\//g, '');
+        }
+        return;
+      }
 
       // 1. CHAIN NAVIGATION FROM HEADER (Service page -> Another Service page)
       if (
@@ -215,15 +287,11 @@ export default function App() {
         if (isTransitioningRef.current) return;
         isTransitioningRef.current = true;
 
-        let targetDoorIdx = doorIndex;
-        if (targetDoorIdx === undefined) {
-          if (target.includes('app-developer')) targetDoorIdx = 0;
-          else if (target.includes('ui-ux')) targetDoorIdx = 1;
-          else if (target.includes('app-deployment')) targetDoorIdx = 2;
-        }
-
+        const targetDoorIdx =
+          doorIndex !== undefined ? doorIndex : getDoorIndexFromTarget(target);
         const exitIdx = activeDoorIndex >= 0 ? activeDoorIndex : 0;
 
+        afterExitTargetRef.current = null;
         setPendingRoute(target);
         setPendingDoorIndex(targetDoorIdx);
 
@@ -236,6 +304,7 @@ export default function App() {
           setActiveDoorIndex(targetDoorIdx);
           isTransitioningRef.current = false;
           window.history.pushState(null, '', target);
+          setIsMenuOpen(false);
           return;
         }
 
@@ -269,7 +338,7 @@ export default function App() {
         return;
       }
 
-      // 2. STANDARD BACK TO DOORS
+      // 2. STANDARD BACK TO DOORS / HOME / STORY
       if (
         currentRoute !== '/' &&
         (isBack ||
@@ -288,6 +357,10 @@ export default function App() {
             ? activeDoorIndex
             : 0;
 
+        const resolvedScrollTarget =
+          afterExitScrollTarget || (target === '#home' ? '#home' : null);
+        afterExitTargetRef.current = resolvedScrollTarget;
+
         const prefersReducedMotion =
           typeof window !== 'undefined' &&
           window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -298,6 +371,33 @@ export default function App() {
           setIsDoorsExiting(false);
           isTransitioningRef.current = false;
           window.history.pushState(null, '', '/');
+          setIsMenuOpen(false);
+          scrollAfterDoorClose(resolvedScrollTarget);
+          return;
+        }
+
+        // If ContactPage (no door), skip door closing animation and go straight to Hero/Doors
+        if (currentRoute.includes('contact')) {
+          gsap.to(serviceWrapperRef.current, {
+            opacity: 0,
+            scale: 0.94,
+            borderRadius: '48px',
+            duration: 0.5,
+            ease: 'sine.inOut',
+            onComplete: () => {
+              setCurrentRoute('/');
+              setActiveDoorIndex(-1);
+              setIsDoorsExiting(false);
+              isTransitioningRef.current = false;
+              try {
+                window.history.pushState(null, '', '/');
+              } catch (e) {
+                window.location.hash = '';
+              }
+              scrollAfterDoorClose(resolvedScrollTarget || '#home');
+            },
+          });
+          setIsMenuOpen(false);
           return;
         }
 
@@ -332,6 +432,12 @@ export default function App() {
       }
 
       // 3. ANCHOR SCROLL
+      if (target === '#home') {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        setIsMenuOpen(false);
+        return;
+      }
+
       if (target.startsWith('#')) {
         const el = document.querySelector(target);
         if (el) el.scrollIntoView({ behavior: 'smooth' });
@@ -339,15 +445,35 @@ export default function App() {
         return;
       }
 
-      // 4. FORWARD ENTRY FROM HOME PAGE
-      let targetDoorIdx = doorIndex;
-      if (targetDoorIdx === undefined) {
-        if (target.includes('app-developer')) targetDoorIdx = 0;
-        else if (target.includes('ui-ux')) targetDoorIdx = 1;
-        else if (target.includes('app-deployment')) targetDoorIdx = 2;
+      // 4. FORWARD ENTRY FROM HOME PAGE -> Go to #doors first, then run door open animation
+      const targetDoorIdx =
+        doorIndex !== undefined ? doorIndex : getDoorIndexFromTarget(target);
+
+      if (currentRoute === '/' && targetDoorIdx >= 0) {
+        if (isTransitioningRef.current) return;
+        setIsMenuOpen(false);
+        setIsDoorsExiting(false);
+        setActiveDoorIndex(targetDoorIdx);
+
+        const doorsEl = document.getElementById('doors');
+        const alreadyAtDoors =
+          doorsEl && Math.abs(doorsEl.getBoundingClientRect().top) < 80;
+
+        if (doorsSectionRef.current?.triggerEntrance) {
+          if (alreadyAtDoors || !doorsEl) {
+            doorsSectionRef.current.triggerEntrance(targetDoorIdx);
+          } else {
+            doorsEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            if (entranceTimeoutRef.current) clearTimeout(entranceTimeoutRef.current);
+            entranceTimeoutRef.current = setTimeout(() => {
+              doorsSectionRef.current?.triggerEntrance(targetDoorIdx);
+            }, 420);
+          }
+          return;
+        }
       }
 
-      if (targetDoorIdx !== undefined && targetDoorIdx >= 0) {
+      if (targetDoorIdx >= 0) {
         setActiveDoorIndex(targetDoorIdx);
       }
 
@@ -391,7 +517,7 @@ export default function App() {
 
       setIsMenuOpen(false);
     },
-    [currentRoute, activeDoorIndex]
+    [currentRoute, activeDoorIndex, scrollAfterDoorClose]
   );
 
   useEffect(() => {

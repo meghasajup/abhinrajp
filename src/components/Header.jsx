@@ -128,11 +128,19 @@ export default function Header({
 
     // If currently on a service page and clicking Home or My story
     if (currentRoute !== '/' && link.route === '/') {
-      onNavigate('/', { isBack: true });
+      onNavigate('/', {
+        isBack: true,
+        afterExitScrollTarget: link.target, // '#home' or '#about'
+      });
       return;
     }
 
     // On home page navigating to anchor
+    if (link.target === '#home') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
     if (link.target.startsWith('#')) {
       onNavigate(link.target);
     } else {

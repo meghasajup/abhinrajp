@@ -190,7 +190,10 @@ const DoorsSection = forwardRef(function DoorsSection(
         if (containerRef.current) containerRef.current.classList.remove('is-animating');
         isTransitioningRef.current = false;
         if (onNavigate) {
-          onNavigate(DOORS_DATA[index].route, { doorIndex: index });
+          onNavigate(DOORS_DATA[index].route, {
+            doorIndex: index,
+            skipDoorAnimation: true,
+          });
         }
         return;
       }
@@ -208,7 +211,10 @@ const DoorsSection = forwardRef(function DoorsSection(
           }
           isTransitioningRef.current = false;
           if (onNavigate) {
-            onNavigate(DOORS_DATA[index].route, { doorIndex: index });
+            onNavigate(DOORS_DATA[index].route, {
+              doorIndex: index,
+              skipDoorAnimation: true,
+            });
           }
         },
       });
