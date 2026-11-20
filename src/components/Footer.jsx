@@ -12,13 +12,6 @@ export default function Footer({ onOpenContact, onNavigate }) {
       {/* Ambient Gradient Glows */}
       <div aria-hidden="true" className="pointer-events-none absolute -top-40 -right-32 w-[32rem] h-[32rem] rounded-full blur-[120px] opacity-30" style={{background:'radial-gradient(circle, rgba(201,169,110,0.22), transparent 70%)'}}/>
       <div aria-hidden="true" className="pointer-events-none absolute bottom-0 -left-32 w-[28rem] h-[28rem] rounded-full blur-[120px] opacity-20" style={{background:'radial-gradient(circle, rgba(201,169,110,0.16), transparent 70%)'}}/>
-      {/* Decorative Hanging Bulb */}
-      <div aria-hidden="true" className="absolute top-0 right-[17%] hidden md:flex flex-col items-center pointer-events-none z-10">
-        <div className="w-[2px] h-[85px] bg-gradient-to-b from-[#d8d0bd] to-[#8d806a]" />
-        <div className="relative w-[15px] h-[38px] rounded-[50%_50%_45%_45%] bg-gradient-to-r from-[#4b3321] via-[#a47a4d] to-[#49301f] shadow-[0_5px_18px_rgba(201,169,110,0.18)]">
-          <div className="absolute top-[5px] left-1/2 -translate-x-1/2 w-[3px] h-[22px] rounded-full bg-[#d0a675]/30 blur-[2px]"/>
-        </div>
-      </div>
       <div className="relative max-w-[70rem] w-full mx-auto">
         {/* Hiring / Flutter Developer Section */}
         <div className="mb-12">
