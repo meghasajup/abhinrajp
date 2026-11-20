@@ -69,27 +69,27 @@ export default function Footer({ onOpenContact, onNavigate }) {
             </h3>
             <ul className="space-y-2 text-sm">
               <li>
-                <a href="/web-developer/" onClick={(e) => {
+                <a href="#doors" onClick={(e) => {
                     e.preventDefault();
-                    onNavigate('/web-developer/');
+                    onNavigate('#doors');
                   }}
                   className="text-[#c7c0bd] hover:text-[#c9a96e] transition-colors font-medium">
                   Flutter Developer
                 </a>
               </li>
               <li>
-                <a href="/web-developer/" onClick={(e) => {
+                <a href="#doors" onClick={(e) => {
                     e.preventDefault();
-                    onNavigate('/web-developer/');
+                    onNavigate('#doors');
                   }}
                   className="text-[#c7c0bd] hover:text-[#c9a96e] transition-colors font-medium">
                   UI/UX Developer
                 </a>
               </li>
               <li>
-                <a href="/developer/" onClick={(e) => {
+                <a href="#doors" onClick={(e) => {
                     e.preventDefault();
-                    onNavigate('/developer/');
+                    onNavigate('#doors');
                   }}
                   className="text-[#c7c0bd] hover:text-[#c9a96e] transition-colors font-medium">
                   App Deployment
