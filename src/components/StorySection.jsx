@@ -12,53 +12,53 @@ const TIMELINE_STEPS = [
   {
     id: 1,
     year: '2026',
-    period: 'OCT 2026 — NOW',
+    period: 'SEP 2024 — NOW',
     badge: 'CURRENT FOCUS',
-    role: 'Independent freelancer',
-    org: 'Working for myself, remote-first',
+    role: 'Flutter Developer',
+    org: 'Equinox Tech Solutions, Bangalore',
     angle: 45,
     bullets: [
-      'Websites, iOS apps, interfaces and brand creatives, carried from the first sketch to launch.',
-      'Working directly with clients, wherever they are.'
+      'Building and shipping cross-platform Android and Flutter apps from architecture and UI/UX to store release.',
+      'Collaborating with product, design, and backend teams under a company workflow to deliver reliable features.'
     ]
   },
   {
     id: 2,
-    year: '2026',
-    period: 'JUL 2026 — SEP 2026',
-    badge: 'DESIGN',
-    role: 'Graphic designer',
-    org: 'Himspring LLC',
+    year: '2023',
+    period: 'OCT 2023 — SEP 2024',
+    badge: 'DEVELOPMENT',
+    role: 'Mobile App Developer',
+    org: 'Brototype, Calicut',
     angle: 135,
     bullets: [
-      'Managed visual content across social media handles for real estate, luxury water bottle and clothing brands.',
-      'Designed social media creatives, stories and carousels in'
+      'Mastered Flutter, Dart, and clean architecture through intensive self-learning and weekly technical reviews at Brototype.',
+      'Built and deployed full-scale practice projects from scratch, focusing on state management, REST APIs, and responsive UI.'
     ]
   },
   {
     id: 3,
-    year: '2024',
-    period: 'FREELANCE',
-    badge: 'INTERNATIONAL',
-    role: 'Web Developer',
-    org: 'International Client Projects (UAE)',
+    year: '2022',
+    period: 'EDUCATION',
+    badge: 'EDUCATION',
+    role: 'DIPLOMA IN ECE',
+    org: 'KMCT Polytechnic College, Calicut',
     angle: 225,
     bullets: [
-      'Designed and developed a corporate web platform for a UAE-based company.',
-      'Delivered modern and responsive solutions based on client requirements.'
+      'Completed a Diploma in Electronics and Communication Engineering with a strong foundation in digital electronics, microprocessors, and communication systems.',
+      'Gained hands-on experience in circuit design, PCB fabrication, and troubleshooting electronic hardware components.'
     ]
   },
   {
     id: 4,
-    year: '2023',
+    year: '2019',
     period: 'EDUCATION',
-    badge: 'FOUNDATION',
-    role: 'Bachelor of Computer Applications (BCA)',
-    org: 'BCA Graduate (2026) · 10+ Projects Built',
+    badge: 'EDUCATION ',
+    role: 'PUC TECHNICAL',
+    org: 'HIGHER SECONDARY',
     angle: 315,
     bullets: [
-      'Rigorous computer science foundations: data structures, algorithms, system architecture.',
-      'Built 10+ complete full-stack and software projects throughout academic journey.'
+      'Built foundational electronics skills in basic circuits, analog/digital devices, and electronic instruments during +2 technical education.',
+      'Completed hands-on lab work, circuit assembly, and basic fault-finding across academic coursework.'
     ]
   }
 ];
@@ -326,8 +326,8 @@ export default function StorySection() {
                 key={step.id}
                 onClick={() => handleStepClick(idx)}
                 className={`w-7 h-7 rounded-full text-xs font-mono font-bold transition-all cursor-pointer ${activeStep === idx
-                    ? 'bg-[#171717] dark:bg-white text-white dark:text-black shadow-sm scale-105'
-                    : 'bg-black/5 dark:bg-white/10 text-[#71717a] hover:text-[#171717] dark:hover:text-white'
+                  ? 'bg-[#171717] dark:bg-white text-white dark:text-black shadow-sm scale-105'
+                  : 'bg-black/5 dark:bg-white/10 text-[#71717a] hover:text-[#171717] dark:hover:text-white'
                   }`}
                 aria-label={`Jump to step 0${step.id}`}
               >
@@ -341,7 +341,7 @@ export default function StorySection() {
         <div ref={rightColRef} className="w-full lg:w-1/2 lg:ml-auto relative py-12 lg:pt-[25vh] lg:pb-24 pl-6 sm:pl-10 lg:pl-16">
           {/* Vertical Timeline Spine Line */}
           <div className="absolute left-3 sm:left-4 lg:left-6 top-16 bottom-24 w-[1px] bg-[#e5e7eb] dark:bg-white/10">
-            <div ref={spineFillRef} className="w-full bg-[#171717] dark:bg-white origin-top h-0"/>
+            <div ref={spineFillRef} className="w-full bg-[#171717] dark:bg-white origin-top h-0" />
           </div>
 
           {/* Timeline Items Stack */}
