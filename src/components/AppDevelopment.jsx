@@ -175,11 +175,13 @@ export default function AppDevelopment({
     const overlays = overlayRefs.current.filter(Boolean);
     const totalCards = cards.length;
     if (totalCards < 2) return;
+
     const mm = gsap.matchMedia();
+
     const buildStack = (isMobile) => {
       const transitionDuration = 1;
-      const holdDuration = isMobile ? 0.55 : 0.7;
-      const stageHeight = () => stage.getBoundingClientRect().height;
+      const getStageHeight = () => stage.getBoundingClientRect().height || 640;
+
       cards.forEach((card, index) => {
         gsap.set(card, {
           position: 'absolute',
@@ -187,7 +189,7 @@ export default function AppDevelopment({
           left: 0,
           right: 0,
           x: 0,
-          y: index === 0 ? 0 : stageHeight(),
+          y: index === 0 ? 0 : getStageHeight(),
           scale: 1,
           opacity: 1,
           visibility: 'visible',
@@ -198,23 +200,24 @@ export default function AppDevelopment({
         if (overlays[index]) gsap.set(overlays[index], { opacity: 0 });
       });
 
+      // Each card transition runs back-to-back with no extra dead-scroll hold between cards
       const timeline = gsap.timeline({ defaults: { ease: 'none' } });
 
       for (let index = 1; index < totalCards; index += 1) {
         const startAt = timeline.duration();
 
-        // Bring the next card fully into the stage.
-        timeline.to(
+        timeline.fromTo(
           cards[index],
+          { y: () => getStageHeight(), opacity: 1 },
           {
             y: 0,
+            opacity: 1,
             duration: transitionDuration,
             ease: 'power1.inOut',
           },
           startAt
         );
 
-        // Build the previous cards into a compact stack underneath it.
         for (let previous = 0; previous < index; previous += 1) {
           const depth = index - previous;
           const targetScale = isMobile
@@ -228,7 +231,9 @@ export default function AppDevelopment({
             {
               scale: targetScale,
               y: targetY,
+              opacity: 1,
               duration: transitionDuration,
+              ease: 'power1.inOut',
             },
             startAt
           );
@@ -239,22 +244,20 @@ export default function AppDevelopment({
               {
                 opacity: targetOverlay,
                 duration: transitionDuration,
+                ease: 'power1.inOut',
               },
               startAt
             );
           }
         }
-
-        // A real hold gives the viewer time to read the fully revealed card.
-        timeline.to({}, { duration: holdDuration });
       }
 
       const trigger = ScrollTrigger.create({
         trigger: stage,
         animation: timeline,
         start: isMobile ? 'top top+=72' : 'top top+=88',
-        end: () => `+=${Math.ceil(window.innerHeight * timeline.duration())}`,
-        scrub: 0.65,
+        end: () => `+=${Math.ceil(window.innerHeight * (totalCards - 1))}`,
+        scrub: 0.45,
         pin: stage,
         pinSpacing: true,
         pinType: 'fixed',
