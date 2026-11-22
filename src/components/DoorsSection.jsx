@@ -636,7 +636,7 @@ const DoorsSection = forwardRef(function DoorsSection(
                 return (
                   <div
                     key={door.id}
-                    className="shrink-0 flex items-end justify-center overflow-hidden px-4"
+                    className="shrink-0 flex items-end justify-center overflow-hidden px-6"
                     style={{ width: `${100 / DOORS_DATA.length}%` }}
                   >
                     <div
