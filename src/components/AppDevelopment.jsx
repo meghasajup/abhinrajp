@@ -1,6 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { ArrowLeft, ArrowUp } from 'lucide-react';
+import { ArrowLeft, ArrowUp, ArrowUpRight } from 'lucide-react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
@@ -10,60 +10,99 @@ if (typeof window !== 'undefined') {
 
 const PROJECTS = [
   {
-    id: 'expense-tracker',
-    num: '01 / 04',
-    title: 'Expense Tracker',
-    category: 'IOS APP · FINANCE',
-    subtitle: 'Personal finance, organised into books',
+    id: 'thelearnyn',
+    num: '01 / 05',
+    title: 'TheLearnyn',
+    category: 'ANDROID APP · AI EDTECH PLATFORM',
+    subtitle: 'AI-driven study tools, video courses & mock exams',
     description:
-      'Spending is grouped into expense books such as Personal, Travel and Business, each with its own budget. Add income or an expense in a couple of taps, see the balance, spend and budget used at a glance, and search across every entry.',
-    tags: ['Budgets', 'Expense books', 'Shortcuts & Back Tap'],
-    badge: 'Screen recording on iPhone',
-    iconUrl: '/images/apps/icon-expense-tracker.png',
-    phoneUrl: '/images/apps/phone-expense-tracker.png',
-    reverse: false,
+      'A comprehensive educational ecosystem built on MVVM with Provider—featuring automated AI note generation, a conversational study chatbot, and a Mock Exam engine with dynamic AI explanations. Includes a multi-category video library with digital note-taking, dynamic PDF certificate generation, QR-based scorecard analytics, Cashfree payments, Deep Linking, and FCM notifications.',
+    tags: [
+      'Flutter & Provider (MVVM)',
+      'AI Study Suite & Mock Exams',
+      'PDF Engine & QR Analytics',
+      'Cashfree, Deep Links & FCM',
+    ],
+    badge: 'Live on Google Play',
+    websiteUrl: '', // Add the official project URL here.
+    iconUrl: '/images/apps/icon-thelearnyn.png',
+    phoneUrl: '/images/apps/phone-thelearnyn.png',
   },
   {
-    id: 'secret-vault',
-    num: '02 / 04',
-    title: 'Secret Vault',
-    category: 'IOS APP · PRIVACY',
-    subtitle: 'A photo vault disguised as a calculator',
+    id: 'namodeva',
+    num: '02 / 05',
+    title: 'NamoDeva',
+    category: 'ANDROID APP · CULTURAL PLATFORM',
+    subtitle: 'Cultural content, interactive gaming & media',
     description:
-      'It looks and works like an ordinary calculator. Type your secret equation and double-tap % to open a private vault; photos you import are hidden there and can be removed from your photo library.',
-    tags: ['Privacy', 'Equation passcode', 'Photos access'],
-    badge: 'Recorded on iPhone with sample photos',
-    iconUrl: '/images/apps/icon-secret-vault.png',
-    phoneUrl: '/images/apps/phone-secret-vault.png',
-    reverse: true,
+      'A full-featured cultural platform with immersive animations, in-app gaming, and rich media content—built end-to-end in an Agile environment using MVC with GetX. Features custom Flutter animations, Unreal Engine video integrations, Firebase Authentication (Google Sign-In & Email), and FCM push notifications, deployed to Google Play with zero critical bugs across the first 3 sprints.',
+    tags: [
+      'Flutter & GetX (MVC)',
+      'In-App Gaming & Unreal Video',
+      'Firebase Auth & FCM',
+      'Google Play Live',
+    ],
+    badge: 'Live on Google Play',
+    websiteUrl: '', // Add the official project URL here.
+    iconUrl: '/images/apps/icon-namodeva.png',
+    phoneUrl: '/images/apps/phone-namodeva.png',
   },
   {
-    id: 'brick-breaker',
-    num: '03 / 04',
-    title: 'Brick Breaker',
-    category: 'IOS GAME · ARCADE',
-    subtitle: 'Arcade game with pixel-art levels',
+    id: 'anyskill',
+    num: '03 / 05',
+    title: 'AnySkill',
+    category: 'ANDROID APP · AI EDTECH PLATFORM',
+    subtitle: 'AI-driven study tools, video courses & mock exams',
     description:
-      'A fast arcade brick breaker: pixel-art levels, multi-ball power-ups that flood the screen, combos and a live score, with a pause menu and level-by-level progression.',
-    tags: ['Game design', 'Power-ups', 'Level design'],
-    badge: 'Gameplay recorded on iPhone',
-    iconUrl: '/images/apps/icon-brick-breaker.png',
-    phoneUrl: '/images/apps/phone-brick-breaker.png',
-    reverse: false,
+      'A comprehensive educational ecosystem built on MVVM with Provider—featuring automated AI note generation, a conversational study chatbot, and a Mock Exam engine with dynamic AI explanations. Includes a multi-category video library with digital note-taking, dynamic PDF certificate generation, QR-based scorecard analytics, Cashfree payments, Deep Linking, and FCM notifications.',
+    tags: [
+      'Flutter & Provider (MVVM)',
+      'AI Study Suite & Mock Exams',
+      'PDF Engine & QR Analytics',
+      'Cashfree, Deep Links & FCM',
+    ],
+    badge: 'Live on Google Play',
+    websiteUrl: '', // Add the official project URL here.
+    iconUrl: '/images/apps/icon-thelearnyn.png',
+    phoneUrl: '/images/apps/phone-thelearnyn.png',
   },
   {
-    id: 'dice',
-    num: '04 / 04',
-    title: 'Dice',
-    category: 'IOS APP · UTILITY',
-    subtitle: 'A colourful dice roller',
+    id: 'taskpro',
+    num: '04 / 05',
+    title: 'Taskpro',
+    category: 'MOBILE APP · SERVICE MARKETPLACE',
+    subtitle: 'Freelance worker booking across user, worker & admin sides',
     description:
-      'Roll several dice at once: each die fits its own block of colour and the total updates instantly, so a board-game night needs nothing but a phone.',
-    tags: ['Utility', 'Minimal UI', 'Tap to roll'],
-    badge: 'Screen recording on iPhone',
-    iconUrl: '/images/apps/icon-dice.png',
-    phoneUrl: '/images/apps/phone-dice.png',
-    reverse: true,
+      'An advanced service booking platform connecting users with freelance workers—built with Clean Architecture and SOLID principles across user, worker, and admin experiences. Features BLoC, GetX, and Provider state management, Firebase (Firestore, Auth, Storage), Razorpay payments, Google Maps SDK discovery, real-time messaging, and adaptive UI for Android and iOS.',
+    tags: [
+      'Clean Architecture & SOLID',
+      'BLoC, GetX & Provider',
+      'Razorpay, Maps & Messaging',
+      'Firebase · Android & iOS',
+    ],
+    badge: 'Amazon Appstore · GitHub',
+    websiteUrl: '', // Add the official project URL here.
+    iconUrl: '/images/apps/icon-taskpro.png',
+    phoneUrl: '/images/apps/phone-taskpro.png',
+  },
+  {
+    id: 'pt-portal',
+    num: '05 / 05',
+    title: 'PT Portal',
+    category: 'MOBILE APP · FITNESS & COACHING',
+    subtitle: 'Personal trainer workflow, reminders & progress tracking',
+    description:
+      'A personal trainer and client management app built on MVVM architecture for clean UI-to-business-logic data binding. Uses Hive for fast local storage alongside a custom notification system for training reminders and ongoing progress tracking.',
+    tags: [
+      'MVVM Architecture',
+      'Hive Local Storage',
+      'Custom Reminders',
+      'Progress Tracking',
+    ],
+    badge: 'Amazon Appstore · GitHub',
+    websiteUrl: '', // Add the official project URL here.
+    iconUrl: '/images/apps/icon-pt-portal.png',
+    phoneUrl: '/images/apps/phone-pt-portal.png',
   },
 ];
 
@@ -79,6 +118,18 @@ export default function AppDevelopment({
 
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [isLeaving, setIsLeaving] = useState(false);
+  const [isMobileBackButton, setIsMobileBackButton] = useState(() =>
+    typeof window !== 'undefined' ? window.innerWidth < 768 : false
+  );
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(max-width: 767px)');
+    const updatePosition = () => setIsMobileBackButton(mediaQuery.matches);
+
+    updatePosition();
+    mediaQuery.addEventListener('change', updatePosition);
+    return () => mediaQuery.removeEventListener('change', updatePosition);
+  }, []);
 
   // Always start this page from the top
   useEffect(() => {
@@ -88,42 +139,51 @@ export default function AppDevelopment({
 
     window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
 
-    requestAnimationFrame(() => {
+    const frame = requestAnimationFrame(() => {
       root.style.scrollBehavior = previousBehavior;
     });
+
+    return () => {
+      cancelAnimationFrame(frame);
+      root.style.scrollBehavior = previousBehavior;
+    };
   }, []);
 
   // Entrance through the door portal
   useEffect(() => {
-    const prefersReducedMotion =
-      typeof window !== 'undefined' &&
-      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const container = containerRef.current;
+    if (!container) return undefined;
 
-    if (!prefersReducedMotion && containerRef.current) {
-      gsap.fromTo(
-        containerRef.current,
-        { opacity: 0, scale: 0.94 },
-        {
-          opacity: 1,
-          scale: 1,
-          duration: 0.55,
-          ease: 'power2.out',
-          onComplete: () => {
-            if (containerRef.current) {
-              gsap.set(containerRef.current, {
-                clearProps: 'transform,willChange',
-              });
-              containerRef.current.style.willChange = 'auto';
-            }
-            ScrollTrigger.refresh();
-          },
-        }
-      );
-    }
+    const prefersReducedMotion = window.matchMedia(
+      '(prefers-reduced-motion: reduce)'
+    ).matches;
+
+    if (prefersReducedMotion) return undefined;
+
+    const entranceTween = gsap.fromTo(
+      container,
+      { opacity: 0, scale: 0.94 },
+      {
+        opacity: 1,
+        scale: 1,
+        duration: 0.55,
+        ease: 'power2.out',
+        onComplete: () => {
+          if (containerRef.current) {
+            gsap.set(containerRef.current, {
+              clearProps: 'transform,willChange',
+            });
+          }
+          ScrollTrigger.refresh();
+        },
+      }
+    );
+
+    return () => entranceTween.kill();
   }, []);
 
-  const handleBackClick = (e) => {
-    if (e) e.preventDefault();
+  const handleBackClick = (event) => {
+    event?.preventDefault();
     if (isLeaving) return;
     setIsLeaving(true);
 
@@ -132,9 +192,9 @@ export default function AppDevelopment({
       scrollTriggerRef.current = null;
     }
 
-    const prefersReducedMotion =
-      typeof window !== 'undefined' &&
-      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const prefersReducedMotion = window.matchMedia(
+      '(prefers-reduced-motion: reduce)'
+    ).matches;
 
     if (prefersReducedMotion || !containerRef.current) {
       onNavigate('/', {
@@ -146,10 +206,16 @@ export default function AppDevelopment({
       return;
     }
 
+    if (window.scrollY > 100) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
     gsap.to(containerRef.current, {
       opacity: 0,
-      duration: 0.25,
-      ease: 'power2.out',
+      scale: 0.94,
+      borderRadius: '48px',
+      duration: 0.38,
+      ease: 'power2.in',
       onComplete: () => {
         onNavigate('/', {
           doorIndex: 0,
@@ -163,18 +229,19 @@ export default function AppDevelopment({
 
   useEffect(() => {
     const handleScroll = () => setShowScrollTop(window.scrollY > 400);
+    handleScroll();
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   useEffect(() => {
     const stage = cardsContainerRef.current;
-    if (!stage) return;
+    if (!stage) return undefined;
 
     const cards = cardRefs.current.filter(Boolean);
     const overlays = overlayRefs.current.filter(Boolean);
     const totalCards = cards.length;
-    if (totalCards < 2) return;
+    if (totalCards < 2) return undefined;
 
     const mm = gsap.matchMedia();
 
@@ -200,7 +267,6 @@ export default function AppDevelopment({
         if (overlays[index]) gsap.set(overlays[index], { opacity: 0 });
       });
 
-      // Each card transition runs back-to-back with no extra dead-scroll hold between cards
       const timeline = gsap.timeline({ defaults: { ease: 'none' } });
 
       for (let index = 1; index < totalCards; index += 1) {
@@ -297,23 +363,20 @@ export default function AppDevelopment({
 
   return (
     <>
-      {/* Main surface */}
       <div
         ref={containerRef}
-        className="service-page-wrapper bg-[#faf5f2] dark:bg-[#1a1818] min-h-screen pt-24 sm:pt-28 pb-12 px-4 sm:px-8 md:px-12 w-full max-w-[84rem] mx-auto relative overflow-visible flex flex-col justify-between rounded-[28px] sm:rounded-[36px] md:rounded-[40px]"
+        className="service-page-wrapper bg-[var(--background)] text-[var(--foreground)] min-h-screen pt-24 sm:pt-28 pb-12 px-4 sm:px-8 md:px-12 w-full max-w-[84rem] mx-auto relative overflow-visible flex flex-col justify-between rounded-[28px] sm:rounded-[36px] md:rounded-[40px]"
       >
         <div className="w-full">
-          {/* Page Header */}
           <div className="max-w-3xl mb-10">
             <h1 className="text-4xl sm:text-6xl md:text-7xl font-extrabold tracking-tight text-foreground mb-4">
               App Development
             </h1>
             <p className="text-lg sm:text-xl text-foreground/75 leading-relaxed font-normal">
-              iOS apps and games, designed and built end to end: from the first screen and the small interactions to the details that make an app feel at home on iPhone.
+              Cross-platform mobile apps, designed and built end to end: from the first screen and smooth interactions to the native details that make an app feel right at home on both iOS and Android.
             </p>
           </div>
 
-          {/* Stacked Cards Parent Stage */}
           <div
             ref={cardsContainerRef}
             className="relative isolate w-full h-[580px] sm:h-[620px] lg:h-[640px] mb-8 overflow-visible"
@@ -323,22 +386,26 @@ export default function AppDevelopment({
               return (
                 <article
                   key={project.id}
-                  ref={(el) => (cardRefs.current[idx] = el)}
+                  ref={(el) => {
+                    cardRefs.current[idx] = el;
+                  }}
                   style={{ zIndex }}
                   className="absolute top-0 inset-x-0 w-full h-full rounded-[32px] sm:rounded-[36px] bg-white dark:bg-[#1e1b1b] border border-black/[0.06] dark:border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.06)] dark:shadow-[0_25px_50px_rgba(0,0,0,0.5)] p-6 sm:p-10 lg:p-12 overflow-hidden flex flex-col justify-between select-none"
                 >
-                  {/* card recedes into stack */}
                   <div
-                    ref={(el) => (overlayRefs.current[idx] = el)}
+                    ref={(el) => {
+                      overlayRefs.current[idx] = el;
+                    }}
                     className="absolute inset-0 rounded-[32px] sm:rounded-[36px] bg-black pointer-events-none opacity-0 z-20"
                   />
+
                   <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 items-center gap-6 lg:gap-10 h-full">
                     {/* Text Content Column */}
                     <div
                       className={`flex flex-col justify-between h-full ${
-                        project.reverse
-                          ? 'lg:col-span-7 lg:order-2'
-                          : 'lg:col-span-7 lg:order-1'
+                        idx % 2 === 0
+                          ? 'lg:col-span-7 lg:order-1'
+                          : 'lg:col-span-7 lg:order-2'
                       }`}
                     >
                       <div>
@@ -362,6 +429,7 @@ export default function AppDevelopment({
                               {project.category}
                             </span>
                           </div>
+
                           <span className="text-xs font-mono text-muted">
                             {project.num}
                           </span>
@@ -370,12 +438,15 @@ export default function AppDevelopment({
                         <h2 className="text-2xl sm:text-4xl lg:text-5xl font-extrabold text-foreground tracking-tight mb-2">
                           {project.title}
                         </h2>
+
                         <p className="text-xs sm:text-sm font-mono text-accent font-medium mb-4 sm:mb-6">
                           {project.subtitle}
                         </p>
+
                         <p className="text-sm sm:text-base text-foreground/80 dark:text-foreground/75 leading-relaxed max-w-xl mb-6">
                           {project.description}
                         </p>
+
                         <div className="flex flex-wrap gap-2 mb-6">
                           {project.tags.map((tag) => (
                             <span
@@ -388,18 +459,33 @@ export default function AppDevelopment({
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-2 pt-2 text-xs font-mono text-muted">
-                        <span className="w-2 h-2 rounded-full bg-foreground/35 dark:bg-foreground/45 inline-block" />
-                        <span>{project.badge}</span>
+                      <div className="flex flex-wrap items-center gap-3 pt-2">
+                        <div className="flex items-center gap-2 text-xs font-mono text-muted">
+                          <span className="w-2 h-2 rounded-full bg-foreground/35 dark:bg-foreground/45 inline-block flex-shrink-0" />
+                          <span>{project.badge}</span>
+                        </div>
+
+                        <a
+                          href={project.websiteUrl || '#'}
+                          target={project.websiteUrl ? '_blank' : undefined}
+                          rel={project.websiteUrl ? 'noopener noreferrer' : undefined}
+                          onClick={(e) => {
+                            if (!project.websiteUrl) e.preventDefault();
+                          }}
+                          className="inline-flex items-center gap-1.5 rounded-full bg-[#111111] px-4 py-2 text-xs font-semibold text-white shadow-sm transition-all hover:bg-[#333333] hover:scale-105 active:scale-95 dark:bg-[#f8f6f2] dark:text-[#111111] dark:hover:bg-white cursor-pointer"
+                        >
+                          <span>Visit</span>
+                          <ArrowUpRight className="h-3.5 w-3.5" />
+                        </a>
                       </div>
                     </div>
 
                     {/* Phone Mockup Column */}
                     <div
                       className={`relative flex items-center justify-center select-none ${
-                        project.reverse
-                          ? 'lg:col-span-5 lg:order-1'
-                          : 'lg:col-span-5 lg:order-2'
+                        idx % 2 === 0
+                          ? 'lg:col-span-5 lg:order-2'
+                          : 'lg:col-span-5 lg:order-1'
                       }`}
                     >
                       <div className="relative w-[220px] sm:w-[250px] lg:w-[270px] drop-shadow-[0_20px_35px_rgba(0,0,0,0.18)] dark:drop-shadow-[0_25px_40px_rgba(0,0,0,0.65)]">
@@ -429,7 +515,6 @@ export default function AppDevelopment({
       {typeof document !== 'undefined' &&
         createPortal(
           <>
-            {/* Outer surround */}
             <div
               aria-hidden="true"
               style={{
@@ -439,7 +524,8 @@ export default function AppDevelopment({
                 boxSizing: 'border-box',
                 border: '2px solid #d5d0cd',
                 borderRadius: 'clamp(44px, 5vw, 88px)',
-                boxShadow: `0 0 0 100vmax #ffffff, inset 0 10px 24px -6px rgba(130, 118, 112, 0.28), inset 0 3px 8px -2px rgba(255, 255, 255, 0.9), inset 0 -10px 22px -6px rgba(130, 118, 112, 0.2), inset 10px 0 22px -6px rgba(130, 118, 112, 0.16), inset -10px 0 22px -6px rgba(130, 118, 112, 0.16)`,
+                boxShadow:
+                  '0 0 0 100vmax #ffffff, inset 0 10px 24px -6px rgba(130, 118, 112, 0.28), inset 0 3px 8px -2px rgba(255, 255, 255, 0.9), inset 0 -10px 22px -6px rgba(130, 118, 112, 0.2), inset 10px 0 22px -6px rgba(130, 118, 112, 0.16), inset -10px 0 22px -6px rgba(130, 118, 112, 0.16)',
                 pointerEvents: 'none',
               }}
             />
@@ -447,8 +533,15 @@ export default function AppDevelopment({
             <button
               type="button"
               onClick={handleBackClick}
-              style={{ position: 'fixed', left: '16px', bottom: '56px', zIndex: 9999 }}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-pill text-xs font-mono font-medium hover:text-accent transition-colors cursor-pointer shadow-sm"
+              disabled={isLeaving}
+              style={{
+                position: 'fixed',
+                left: isMobileBackButton ? '16px' : '24px',
+                top: isMobileBackButton ? '16px' : 'auto',
+                bottom: isMobileBackButton ? 'auto' : '24px',
+                zIndex: 9999,
+              }}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-pill text-xs font-mono font-medium hover:text-accent transition-colors cursor-pointer shadow-sm disabled:opacity-60"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
               <span>Back to the doors</span>

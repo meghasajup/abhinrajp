@@ -1,8 +1,10 @@
-import React, {useState, useEffect, useRef, useCallback, forwardRef, useImperativeHandle,} from 'react';
+import React, { useState, useEffect, useRef, useCallback, forwardRef, useImperativeHandle } from 'react';
 import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import '../styles/DoorPage.css';
 
 if (typeof window !== 'undefined') {
+  gsap.registerPlugin(ScrollTrigger);
   gsap.ticker.lagSmoothing(0);
 }
 
@@ -70,6 +72,7 @@ const DoorsSection = forwardRef(function DoorsSection(
   ref
 ) {
   const [activeDoor, setActiveDoor] = useState(-1);
+  const [mobileActiveIndex, setMobileActiveIndex] = useState(0);
   const [openedDoor, setOpenedDoor] = useState(-1);
   const [isPressing, setIsPressing] = useState(false);
   const [headingVisible, setHeadingVisible] = useState(false);
@@ -77,10 +80,14 @@ const DoorsSection = forwardRef(function DoorsSection(
   const containerRef = useRef(null);
   const cameraRef = useRef(null);
   const headingRef = useRef(null);
+  const mobileTrackRef = useRef(null);
   const wallRef = useRef(null);
   const unitsRef = useRef([]);
+  const mobileUnitsRef = useRef([]);
   const doorPanelRefs = useRef([]);
+  const mobileDoorPanelRefs = useRef([]);
   const leverRefs = useRef([]);
+  const mobileLeverRefs = useRef([]);
   const portalOverlayRef = useRef(null);
   const footerRef = useRef(null);
 
@@ -106,16 +113,69 @@ const DoorsSection = forwardRef(function DoorsSection(
           observer.unobserve(headingElement);
         }
       },
-      { threshold: 0.3 }
+      { threshold: 0.2 }
     );
 
     observer.observe(headingElement);
     return () => observer.disconnect();
   }, []);
 
+  // Mobile (< 1024px) ScrollTrigger horizontal slide + active door indicator sync
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    gsap.registerPlugin(ScrollTrigger);
+
+    const ctx = gsap.context(() => {
+      const mm = gsap.matchMedia();
+
+      mm.add('(max-width: 1023px)', () => {
+        const track = mobileTrackRef.current;
+        const section = containerRef.current;
+        if (!track || !section) return;
+
+        const stepCount = DOORS_DATA.length;
+        const maxShiftPercent = ((stepCount - 1) / stepCount) * 100;
+
+        gsap.fromTo(
+          track,
+          { xPercent: 0 },
+          {
+            xPercent: -maxShiftPercent,
+            ease: 'none',
+            scrollTrigger: {
+              trigger: section,
+              start: 'top top',
+              end: () => `+=${(stepCount - 1) * 650 + 300}`,
+              pin: true,
+              pinSpacing: true,
+              scrub: 0.55,
+              anticipatePin: 1,
+              invalidateOnRefresh: true,
+              onUpdate: (self) => {
+                if (isTransitioningRef.current) return;
+                const rawIdx = Math.round(self.progress * (stepCount - 1));
+                const clampedIdx = Math.max(0, Math.min(stepCount - 1, rawIdx));
+                setMobileActiveIndex((prev) => (prev !== clampedIdx ? clampedIdx : prev));
+              },
+            },
+          }
+        );
+      });
+    }, containerRef);
+
+    const refreshTimer = setTimeout(() => {
+      ScrollTrigger.refresh();
+    }, 200);
+
+    return () => {
+      clearTimeout(refreshTimer);
+      ctx.revert();
+    };
+  }, []);
+
   // Calculate camera zoom metrics
-  const getDoorZoomMetrics = useCallback((index) => {
-    const doorUnit = unitsRef.current[index];
+  const getDoorZoomMetrics = useCallback((index, isMobile = false) => {
+    const doorUnit = isMobile ? mobileUnitsRef.current[index] : unitsRef.current[index];
     const camera = cameraRef.current;
 
     if (!doorUnit || !camera) {
@@ -166,7 +226,10 @@ const DoorsSection = forwardRef(function DoorsSection(
         containerRef.current.classList.add('is-animating');
       }
 
+      const isMobile = typeof window !== 'undefined' && window.innerWidth < 1024;
+
       setActiveDoor(index);
+      setMobileActiveIndex(index);
       setIsPressing(true);
       setOpenedDoor(index);
 
@@ -174,10 +237,11 @@ const DoorsSection = forwardRef(function DoorsSection(
         typeof window !== 'undefined' &&
         window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-      const doorUnit = unitsRef.current[index];
-      const doorPanel = doorPanelRefs.current[index];
-      const lever = leverRefs.current[index];
-      const otherUnits = unitsRef.current.filter((_, i) => i !== index && Boolean(_));
+      const doorUnit = isMobile ? mobileUnitsRef.current[index] : unitsRef.current[index];
+      const doorPanel = isMobile ? mobileDoorPanelRefs.current[index] : doorPanelRefs.current[index];
+      const lever = isMobile ? mobileLeverRefs.current[index] : leverRefs.current[index];
+      const allUnits = isMobile ? mobileUnitsRef.current : unitsRef.current;
+      const otherUnits = allUnits.filter((_, i) => i !== index && Boolean(_));
 
       if (prefersReducedMotion) {
         if (containerRef.current) containerRef.current.classList.remove('is-animating');
@@ -191,7 +255,7 @@ const DoorsSection = forwardRef(function DoorsSection(
         return;
       }
 
-      const metrics = getDoorZoomMetrics(index);
+      const metrics = getDoorZoomMetrics(index, isMobile);
 
       if (activeTimelineRef.current) {
         activeTimelineRef.current.kill();
@@ -214,19 +278,16 @@ const DoorsSection = forwardRef(function DoorsSection(
 
       activeTimelineRef.current = tl;
 
-      // 1. Lever depress
       if (lever) {
         tl.to(lever, { rotation: -32, duration: 0.28, ease: 'sine.inOut' }, 0);
       }
 
-      // 2. Smoothly fade out info panel & hover badge
       tl.to(
         ['.dinfo', doorUnit?.querySelector('.click-to-enter')],
         { opacity: 0, duration: 0.35, ease: 'sine.out', clearProps: 'transform' },
         0
       );
 
-      // 3. Door swing open smoothly
       if (doorPanel) {
         tl.to(
           doorPanel,
@@ -235,7 +296,6 @@ const DoorsSection = forwardRef(function DoorsSection(
         );
       }
 
-      // 4. Camera zoom in smoothly
       if (cameraRef.current) {
         tl.to(
           cameraRef.current,
@@ -252,14 +312,12 @@ const DoorsSection = forwardRef(function DoorsSection(
         );
       }
 
-      // 5. Smooth opacity fade for heading and footer
       tl.to(
         [headingRef.current, footerRef.current],
         { opacity: 0, duration: 0.85, ease: 'sine.inOut' },
         0.35
       );
 
-      // 6. Smooth opacity fade for other doors
       if (otherUnits.length > 0) {
         tl.to(
           otherUnits,
@@ -268,7 +326,6 @@ const DoorsSection = forwardRef(function DoorsSection(
         );
       }
 
-      // 7. Smooth portal overlay fade-in
       if (portalOverlayRef.current) {
         tl.to(
           portalOverlayRef.current,
@@ -290,10 +347,12 @@ const DoorsSection = forwardRef(function DoorsSection(
         containerRef.current.classList.add('is-animating');
       }
 
-      const doorUnit = unitsRef.current[targetIndex];
-      const doorPanel = doorPanelRefs.current[targetIndex];
-      const lever = leverRefs.current[targetIndex];
-      const otherUnits = unitsRef.current.filter((_, i) => i !== targetIndex && Boolean(_));
+      const isMobile = typeof window !== 'undefined' && window.innerWidth < 1024;
+      const doorUnit = isMobile ? mobileUnitsRef.current[targetIndex] : unitsRef.current[targetIndex];
+      const doorPanel = isMobile ? mobileDoorPanelRefs.current[targetIndex] : doorPanelRefs.current[targetIndex];
+      const lever = isMobile ? mobileLeverRefs.current[targetIndex] : leverRefs.current[targetIndex];
+      const allUnits = isMobile ? mobileUnitsRef.current : unitsRef.current;
+      const otherUnits = allUnits.filter((_, i) => i !== targetIndex && Boolean(_));
 
       const prefersReducedMotion =
         typeof window !== 'undefined' &&
@@ -314,13 +373,12 @@ const DoorsSection = forwardRef(function DoorsSection(
         return;
       }
 
-      const metrics = getDoorZoomMetrics(targetIndex);
+      const metrics = getDoorZoomMetrics(targetIndex, isMobile);
 
       if (activeTimelineRef.current) {
         activeTimelineRef.current.kill();
       }
 
-      // Set initial zoomed-in state smoothly before timeline starts
       if (cameraRef.current) {
         gsap.set(cameraRef.current, {
           scale: metrics.scale,
@@ -339,6 +397,7 @@ const DoorsSection = forwardRef(function DoorsSection(
       if (otherUnits.length > 0) gsap.set(otherUnits, { opacity: 0 });
 
       setActiveDoor(targetIndex);
+      setMobileActiveIndex(targetIndex);
       setOpenedDoor(targetIndex);
 
       const reverseTl = gsap.timeline({
@@ -369,7 +428,6 @@ const DoorsSection = forwardRef(function DoorsSection(
 
       activeTimelineRef.current = reverseTl;
 
-      // 1. Smoothly fade out portal overlay
       if (portalOverlayRef.current) {
         reverseTl.to(
           portalOverlayRef.current,
@@ -378,7 +436,6 @@ const DoorsSection = forwardRef(function DoorsSection(
         );
       }
 
-      // 2. Camera zooms out smoothly to normal view
       if (cameraRef.current) {
         reverseTl.to(
           cameraRef.current,
@@ -394,14 +451,12 @@ const DoorsSection = forwardRef(function DoorsSection(
         );
       }
 
-      // 3. Smooth opacity fade-in for heading and footer
       reverseTl.to(
         [headingRef.current, footerRef.current],
         { opacity: 1, duration: 0.95, ease: 'sine.inOut' },
         0.55
       );
 
-      // 4. Smooth opacity fade-in for neighboring doors
       if (otherUnits.length > 0) {
         reverseTl.to(
           otherUnits,
@@ -410,7 +465,6 @@ const DoorsSection = forwardRef(function DoorsSection(
         );
       }
 
-      // 5. Door swings closed smoothly
       if (doorPanel) {
         reverseTl.to(
           doorPanel,
@@ -419,7 +473,6 @@ const DoorsSection = forwardRef(function DoorsSection(
         );
       }
 
-      // 6. Lever handle returns smoothly to resting position
       if (lever) {
         reverseTl.to(
           lever,
@@ -431,20 +484,18 @@ const DoorsSection = forwardRef(function DoorsSection(
     [getDoorZoomMetrics, openedDoor, onExitComplete]
   );
 
-  // Watch for exit trigger prop changes from App.jsx
   useEffect(() => {
     if (isExiting && exitDoorIndex >= 0) {
       runDoorExitAnimation(exitDoorIndex);
     }
   }, [isExiting, exitDoorIndex, runDoorExitAnimation]);
 
-  // Expose imperative methods to parent (App.jsx)
   useImperativeHandle(ref, () => ({
     triggerEntrance: (index) => runDoorEntranceAnimation(index),
     triggerExit: (index) => runDoorExitAnimation(index),
   }));
 
-  // Information panel positioning (paused while transitioning to prevent re-render jitter)
+  // Desktop Information panel positioning
   useEffect(() => {
     if (activeDoor < 0 || !wallRef.current || isTransitioningRef.current) {
       setDinfoPos((prev) => (prev.visible ? { ...prev, visible: false } : prev));
@@ -504,32 +555,172 @@ const DoorsSection = forwardRef(function DoorsSection(
     }
   };
 
+  const currentMobileDoor = DOORS_DATA[mobileActiveIndex] || DOORS_DATA[0];
+
   return (
-    <div ref={containerRef} id="doors" className="relative h-screen max-h-screen bg-[var(--background)] text-[var(--foreground)] flex flex-col overflow-hidden select-none transition-colors duration-500 m-0 p-0">
+    <div
+      ref={containerRef}
+      id="doors"
+      className="relative min-h-screen lg:h-screen lg:max-h-screen bg-[var(--background)] text-[var(--foreground)] flex flex-col overflow-hidden select-none transition-colors duration-500 m-0 p-0"
+    >
       {/* Portal Transition Overlay */}
       <div ref={portalOverlayRef} className="door-portal-overlay" aria-hidden="true" />
 
       {/* Main Camera Stage */}
       <div ref={cameraRef} className="doors-camera-stage">
-        <main className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 md:px-8 pt-6 sm:pt-8 pb-0 flex flex-col flex-1 min-h-0 items-center justify-between">
-          {/* Heading */}
-          <h1 ref={headingRef} className={`doors-heading ${headingVisible ? 'doors-heading-visible' : ''}`} aria-label="Magic happens behind the doors">
-            {'Magic happens behind the doors'.split('').map((letter, index) => (
-              <span key={index} className="doors-heading-letter" style={{ transitionDelay: `${index * 0.035}s` }} aria-hidden="true">
-                {letter === ' ' ? '\u00A0' : letter}
-              </span>
-            ))}
-          </h1>
+        <main className="relative z-10 w-full max-w-7xl mx-auto px-5 sm:px-6 md:px-8 pt-24 sm:pt-28 lg:pt-8 pb-0 flex flex-col flex-1 min-h-0 justify-between">
+          {/* Heading + Mobile Subheading & Dots */}
+          <div className="w-full max-w-6xl mx-auto">
+            <h1
+              ref={headingRef}
+              className={`doors-heading text-left lg:text-center ${headingVisible ? 'doors-heading-visible' : ''}`}
+              aria-label="Magic happens behind the doors"
+            >
+              {'Magic happens behind the doors'.split('').map((letter, index) => (
+                <span
+                  key={index}
+                  className="doors-heading-letter"
+                  style={{ transitionDelay: `${index * 0.035}s` }}
+                  aria-hidden="true"
+                >
+                  {letter === ' ' ? '\u00A0' : letter}
+                </span>
+              ))}
+            </h1>
 
-          {/* Three Doors Wall */}
-          <div ref={wallRef} role="region" aria-label="Available services" className={`relative w-full max-w-6xl flex flex-1 min-h-0 items-end justify-center gap-4 sm:gap-6 md:gap-8 lg:gap-10 pb-0 mt-auto ${ activeDoor >= 0 ? 'doors-focus' : ''}`}
+            {/* MOBILE (< 1024px) Subheading + Dots Indicator */}
+            <div className="lg:hidden mt-5 mb-2 text-left">
+              <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-[#171717] dark:text-white leading-snug">
+                {currentMobileDoor.title}
+              </h2>
+              <p className="mt-1 text-[10px] sm:text-xs font-mono tracking-[0.14em] uppercase text-[#71717a] dark:text-[#a1a1aa]">
+                {currentMobileDoor.subtitle}
+              </p>
+
+              {/* Dots */}
+              <div className="mt-4 flex items-center gap-2" role="tablist" aria-label="Service doors">
+                {DOORS_DATA.map((d, idx) => {
+                  const isCurrent = mobileActiveIndex === idx;
+                  return (
+                    <button
+                      key={d.id}
+                      type="button"
+                      role="tab"
+                      aria-selected={isCurrent}
+                      aria-label={`Select ${d.title}`}
+                      onClick={() => setMobileActiveIndex(idx)}
+                      className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${
+                        isCurrent
+                          ? 'w-6 bg-[#171717] dark:bg-white'
+                          : 'w-1.5 bg-[#171717]/25 dark:bg-white/25'
+                      }`}
+                    />
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          {/* MOBILE (< 1024px) Single-Door-At-A-Time ScrollTrigger Track */}
+          <div className="lg:hidden relative w-full flex-1 min-h-0 flex items-end overflow-hidden pt-3 pb-0">
+            <div
+              ref={mobileTrackRef}
+              className="flex items-end w-full will-change-transform"
+              style={{ width: `${DOORS_DATA.length * 100}%` }}
+            >
+              {DOORS_DATA.map((door, idx) => {
+                const isSelected = mobileActiveIndex === idx;
+                const isOpened = openedDoor === idx;
+                const isPress = isPressing && mobileActiveIndex === idx;
+
+                return (
+                  <div
+                    key={door.id}
+                    className="shrink-0 flex items-end justify-center overflow-hidden px-4"
+                    style={{ width: `${100 / DOORS_DATA.length}%` }}
+                  >
+                    <div
+                      ref={(el) => {
+                        mobileUnitsRef.current[idx] = el;
+                      }}
+                      className={`unit mx-auto w-full max-w-[260px] sm:max-w-[290px] ${
+                        isSelected ? 'on' : ''
+                      } ${isPress ? 'press' : ''}`}
+                      style={{
+                        '--door': door.color,
+                        '--door-dk': door.colorDark,
+                      }}
+                    >
+                      <button
+                        type="button"
+                        tabIndex={0}
+                        aria-label={`Open the ${door.title} door`}
+                        aria-expanded={isOpened}
+                        className="doorway"
+                        onClick={(e) => handleDoorClick(idx, e)}
+                        onKeyDown={(e) => handleKeyDown(e, idx)}
+                      >
+                        <span className="casing" />
+                        <span className="opening">
+                          <span className="room" />
+                          <span
+                            ref={(el) => {
+                              mobileDoorPanelRefs.current[idx] = el;
+                            }}
+                            className="door"
+                          >
+                            <span className="door__flute" />
+                            <span className="plate">
+                              <span>{door.plateTop}</span>
+                              <br />
+                              <span>{door.plateBottom}</span>
+                            </span>
+                            <span className="handle">
+                              <span
+                                ref={(el) => {
+                                  mobileLeverRefs.current[idx] = el;
+                                }}
+                                className="handle__lever"
+                              />
+                              <span className="handle__lock" />
+                            </span>
+                          </span>
+                          <span className="click-to-enter">Click to enter</span>
+                          <span className="sill" />
+                        </span>
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* DESKTOP (>= 1024px) Three Doors Wall */}
+          <div
+            ref={wallRef}
+            role="region"
+            aria-label="Available services"
+            className={`hidden lg:flex relative w-full max-w-6xl mx-auto flex-1 min-h-0 items-end justify-center gap-4 sm:gap-6 md:gap-8 lg:gap-10 pb-0 mt-auto ${
+              activeDoor >= 0 ? 'doors-focus' : ''
+            }`}
             onMouseLeave={() => {
               if (openedDoor < 0 && !isTransitioningRef.current) {
                 setActiveDoor(-1);
-              }}}>
+              }
+            }}
+          >
             {/* Desktop Information Panel */}
             {activeDoor >= 0 && !isTransitioningRef.current && (
-              <div role="tooltip" className={`dinfo hidden lg:block ${dinfoPos.visible ? 'on' : ''}`} style={{left: `${dinfoPos.left}px`, top: `${dinfoPos.top}px`, width: `${dinfoPos.width}px`,}}>
+              <div
+                role="tooltip"
+                className={`dinfo hidden lg:block ${dinfoPos.visible ? 'on' : ''}`}
+                style={{
+                  left: `${dinfoPos.left}px`,
+                  top: `${dinfoPos.top}px`,
+                  width: `${dinfoPos.width}px`,
+                }}
+              >
                 <h3 className="dinfo__h">{DOORS_DATA[activeDoor].title}</h3>
                 <p className="dinfo__t">{DOORS_DATA[activeDoor].subtitle}</p>
                 <ul className="dinfo__p">
@@ -540,15 +731,30 @@ const DoorsSection = forwardRef(function DoorsSection(
               </div>
             )}
 
-            {/* Render Doors */}
+            {/* Render Desktop Doors */}
             {DOORS_DATA.map((door, idx) => {
               const isHovered = activeDoor === idx;
               const isOpened = openedDoor === idx;
               const isPress = isPressing && activeDoor === idx;
 
               return (
-                <div key={door.id} ref={(el) => { unitsRef.current[idx] = el;}} className={`unit ${isHovered ? 'on' : ''} ${isPress ? 'press' : ''}`} style={{'--door': door.color,'--door-dk': door.colorDark,}}>
-                  <button type="button" tabIndex={0} aria-label={`Open the ${door.title} door`} aria-expanded={isOpened} className="doorway"
+                <div
+                  key={door.id}
+                  ref={(el) => {
+                    unitsRef.current[idx] = el;
+                  }}
+                  className={`unit ${isHovered ? 'on' : ''} ${isPress ? 'press' : ''}`}
+                  style={{
+                    '--door': door.color,
+                    '--door-dk': door.colorDark,
+                  }}
+                >
+                  <button
+                    type="button"
+                    tabIndex={0}
+                    aria-label={`Open the ${door.title} door`}
+                    aria-expanded={isOpened}
+                    className="doorway"
                     onMouseEnter={() => {
                       if (!isTransitioningRef.current) setActiveDoor(idx);
                     }}
@@ -560,11 +766,18 @@ const DoorsSection = forwardRef(function DoorsSection(
                         setActiveDoor(-1);
                       }
                     }}
-                    onClick={(e) => handleDoorClick(idx, e)} onKeyDown={(e) => handleKeyDown(e, idx)}>
+                    onClick={(e) => handleDoorClick(idx, e)}
+                    onKeyDown={(e) => handleKeyDown(e, idx)}
+                  >
                     <span className="casing" />
                     <span className="opening">
                       <span className="room" />
-                      <span ref={(el) => {doorPanelRefs.current[idx] = el;}} className="door">
+                      <span
+                        ref={(el) => {
+                          doorPanelRefs.current[idx] = el;
+                        }}
+                        className="door"
+                      >
                         <span className="door__flute" />
                         <span className="plate">
                           <span>{door.plateTop}</span>
@@ -572,7 +785,12 @@ const DoorsSection = forwardRef(function DoorsSection(
                           <span>{door.plateBottom}</span>
                         </span>
                         <span className="handle">
-                          <span ref={(el) => { leverRefs.current[idx] = el;}} className="handle__lever"/>
+                          <span
+                            ref={(el) => {
+                              leverRefs.current[idx] = el;
+                            }}
+                            className="handle__lever"
+                          />
                           <span className="handle__lock" />
                         </span>
                       </span>
@@ -584,30 +802,13 @@ const DoorsSection = forwardRef(function DoorsSection(
               );
             })}
           </div>
-
-          {/* Mobile Information Drawer */}
-          {activeDoor >= 0 && !isTransitioningRef.current && (
-            <div className="w-full max-w-md lg:hidden mt-4 p-4 rounded-2xl bg-white/95 dark:bg-neutral-900/95 border border-neutral-200 dark:border-neutral-800 shadow-xl">
-              <h3 className="text-xl font-bold mb-1 text-[var(--foreground)]">
-                {DOORS_DATA[activeDoor].title}
-              </h3>
-              <p className="text-xs font-mono uppercase text-[#a88a4b] mb-2">
-                {DOORS_DATA[activeDoor].subtitle}
-              </p>
-              <div className="space-y-1.5 border-t border-neutral-200 dark:border-neutral-800 pt-2">
-                {DOORS_DATA[activeDoor].features.map((feature, i) => (
-                  <div key={i} className="flex items-center text-xs text-neutral-700 dark:text-neutral-300">
-                    <span className="mr-2 text-[#a88a4b] font-bold">✔</span>
-                    {feature}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
         </main>
 
         {/* Architectural Baseboard */}
-        <footer ref={footerRef} className="architectural-baseboard w-full relative z-30 flex-shrink-0 pointer-events-none select-none">
+        <footer
+          ref={footerRef}
+          className="architectural-baseboard w-full relative z-30 flex-shrink-0 pointer-events-none select-none"
+        >
           <div className="baseboard-gold-line" />
           <div className="baseboard-upper" />
           <div className="baseboard-main" />

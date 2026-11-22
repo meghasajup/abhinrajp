@@ -3,7 +3,6 @@ import { History } from 'lucide-react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
-//ScrollTrigger
 if (typeof window !== 'undefined') {
   gsap.registerPlugin(ScrollTrigger);
 }
@@ -54,11 +53,11 @@ const TIMELINE_STEPS = [
     period: 'EDUCATION',
     badge: 'EDUCATION ',
     role: 'PUC TECHNICAL',
-    org: 'HIGHER SECONDARY',
+    org: 'THSS Vazhakkad, Malappuram',
     angle: 315,
     bullets: [
-      'Built foundational electronics skills in basic circuits, analog/digital devices, and electronic instruments during +2 technical education.',
-      'Completed hands-on lab work, circuit assembly, and basic fault-finding across academic coursework.'
+      'Built foundational electronics skills in basic circuits, analog/digital devices, and electronic instruments alongside C, C++, and core IT programming during +2 technical education.',
+      'Completed hands-on lab work, circuit assembly, basic fault-finding, and introductory coding exercises across academic coursework.'
     ]
   }
 ];
@@ -80,7 +79,10 @@ function OdometerReel({ digit }) {
 
   return (
     <span className="inline-block h-[1em] overflow-hidden leading-none relative align-baseline">
-      <span className="flex flex-col transition-transform duration-700 ease-[cubic-bezier(0.25,1,0.5,1)]" style={{ transform: `translateY(-${num * 10}%)` }}>
+      <span
+        className="flex flex-col transition-transform duration-700 ease-[cubic-bezier(0.25,1,0.5,1)]"
+        style={{ transform: `translateY(-${num * 10}%)` }}
+      >
         {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => (
           <span key={n} className="h-[1em] flex items-center justify-center select-none">
             {n}
@@ -114,24 +116,27 @@ function YearDisplay({ value }) {
 
 export default function StorySection() {
   const [activeStep, setActiveStep] = useState(0);
-  // Animation & Layout Refs
+
   const sectionRef = useRef(null);
   const containerRef = useRef(null);
   const leftPanelRef = useRef(null);
   const rightColRef = useRef(null);
   const dialRef = useRef(null);
   const spineFillRef = useRef(null);
+  const mobileHeaderRef = useRef(null);
+  const mobileBarRef = useRef(null);
   const itemRefs = useRef([]);
 
-  // Refs for the 3 expanding clock layers
   const ring1Ref = useRef(null);
   const ring2Ref = useRef(null);
   const ring3Ref = useRef(null);
 
   const currentStep = TIMELINE_STEPS[activeStep];
-  const displayYear = currentStep.year || (currentStep.period.match(/\b(20\d\d)\b/)?.[1]) || currentStep.period;
+  const displayYear =
+    currentStep.year ||
+    currentStep.period.match(/\b(20\d\d)\b/)?.[1] ||
+    currentStep.period;
 
-  //GSAP ScrollTrigger
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
@@ -140,8 +145,8 @@ export default function StorySection() {
     const ctx = gsap.context(() => {
       const mm = gsap.matchMedia();
 
+      // Desktop (>= 1024px) behavior
       mm.add('(min-width: 1024px)', () => {
-        // Pin the Left Panel
         ScrollTrigger.create({
           trigger: containerRef.current,
           start: 'top top',
@@ -151,7 +156,6 @@ export default function StorySection() {
           anticipatePin: 1,
         });
 
-        //Circular Dial Rotation
         if (dialRef.current) {
           gsap.to(dialRef.current, {
             rotation: 90,
@@ -165,7 +169,6 @@ export default function StorySection() {
           });
         }
 
-        //Clock Expansion
         if (ring1Ref.current && ring2Ref.current && ring3Ref.current && containerRef.current) {
           const tl = gsap.timeline({
             scrollTrigger: {
@@ -195,7 +198,39 @@ export default function StorySection() {
         }
       });
 
-      // Scroll-Triggered 
+      // Mobile (< 1024px) ScrollTrigger pin until section ends + progress bar scrub
+      mm.add('(max-width: 1023px)', () => {
+        if (mobileHeaderRef.current && sectionRef.current) {
+          const headerHeight = mobileHeaderRef.current.offsetHeight || 0;
+
+          ScrollTrigger.create({
+            trigger: sectionRef.current,
+            start: 'top top',
+            end: () => `bottom top+=${headerHeight}`,
+            pin: mobileHeaderRef.current,
+            pinSpacing: false,
+            anticipatePin: 1,
+          });
+        }
+
+        if (mobileBarRef.current && rightColRef.current) {
+          gsap.fromTo(
+            mobileBarRef.current,
+            { scaleX: 0.1 },
+            {
+              scaleX: 1,
+              ease: 'none',
+              scrollTrigger: {
+                trigger: rightColRef.current,
+                start: 'top 65%',
+                end: 'bottom 75%',
+                scrub: true,
+              }
+            }
+          );
+        }
+      });
+
       itemRefs.current.forEach((el, index) => {
         if (!el) return;
 
@@ -207,7 +242,6 @@ export default function StorySection() {
           onEnterBack: () => setActiveStep(index),
         });
       });
-
     }, sectionRef);
 
     const refreshTimer = setTimeout(() => {
@@ -228,30 +262,91 @@ export default function StorySection() {
   };
 
   return (
-    <section ref={sectionRef} id="about" className="relative w-full overflow-hidden bg-[#FAF8F5] dark:bg-[#0c0d10] text-[#171717] dark:text-[#f3f4f6] transition-colors duration-700">
-      <div className="absolute inset-0 pointer-events-none opacity-[0.035] dark:opacity-[0.02] mix-blend-multiply dark:mix-blend-overlay z-0" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }} />
-      {/* Top-left shade */}
-      <div className="absolute top-0 left-0 w-[500px] sm:w-[700px] h-full pointer-events-none blur-3xl transition-all duration-1000 ease-out z-0 opacity-70 dark:opacity-30" style={{ background: 'radial-gradient(circle at 0% 15%, rgba(255, 150, 90, 0.35) 0%, rgba(255, 200, 150, 0.12) 40%, transparent 70%)' }} />
-      {/* Bottom-right shade */}
-      <div className="absolute bottom-0 right-0 w-[500px] sm:w-[700px] h-full pointer-events-none blur-3xl transition-all duration-1000 ease-out z-0 opacity-70 dark:opacity-30" style={{ background: 'radial-gradient(circle at 100% 85%, rgba(255, 140, 80, 0.3) 0%, rgba(255, 190, 130, 0.1) 40%, transparent 70%)' }} />
-      {/* Active Step-based Dynamic Glow Accent */}
-      <div className="absolute top-1/3 left-1/4 w-[600px] sm:w-[800px] h-[600px] sm:h-[800px] rounded-full pointer-events-none blur-3xl transition-all duration-1000 ease-out z-0 opacity-50" style={{ background: AMBIENT_GRADIENTS[activeStep] || AMBIENT_GRADIENTS[0] }} />
+    <section
+      ref={sectionRef}
+      id="about"
+      className="relative w-full overflow-x-clip bg-[#FAF8F5] dark:bg-[#0c0d10] text-[#171717] dark:text-[#f3f4f6] transition-colors duration-700"
+    >
+      <div
+        className="absolute inset-0 pointer-events-none opacity-[0.035] dark:opacity-[0.02] mix-blend-multiply dark:mix-blend-overlay z-0"
+        style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`
+        }}
+      />
+      <div
+        className="absolute top-0 left-0 w-[500px] sm:w-[700px] h-full pointer-events-none blur-3xl transition-all duration-1000 ease-out z-0 opacity-70 dark:opacity-30"
+        style={{
+          background:
+            'radial-gradient(circle at 0% 15%, rgba(255, 150, 90, 0.35) 0%, rgba(255, 200, 150, 0.12) 40%, transparent 70%)'
+        }}
+      />
+      <div
+        className="absolute bottom-0 right-0 w-[500px] sm:w-[700px] h-full pointer-events-none blur-3xl transition-all duration-1000 ease-out z-0 opacity-70 dark:opacity-30"
+        style={{
+          background:
+            'radial-gradient(circle at 100% 85%, rgba(255, 140, 80, 0.3) 0%, rgba(255, 190, 130, 0.1) 40%, transparent 70%)'
+        }}
+      />
+      <div
+        className="absolute top-1/3 left-1/4 w-[600px] sm:w-[800px] h-[600px] sm:h-[800px] rounded-full pointer-events-none blur-3xl transition-all duration-1000 ease-out z-0 opacity-50"
+        style={{ background: AMBIENT_GRADIENTS[activeStep] || AMBIENT_GRADIENTS[0] }}
+      />
+
+      {/* MOBILE SCROLLTRIGGER-PINNED HEADER (Shown only below lg) */}
+      <div
+        ref={mobileHeaderRef}
+        className="lg:hidden relative z-30 w-full bg-[#FAF8F5] dark:bg-[#0c0d10] border-b border-[#171717]/10 dark:border-white/10 px-6 pt-4 pb-3 select-none"
+      >
+        <h2 className="text-lg sm:text-xl font-bold tracking-tight text-[#171717] dark:text-white leading-tight mb-1">
+          Let's go back in time.
+        </h2>
+
+        <div className="flex items-start justify-start">
+          <div className="text-5xl sm:text-6xl font-black tracking-tight text-[#171717] dark:text-white leading-none font-sans">
+            <YearDisplay value={displayYear} />
+          </div>
+        </div>
+
+        <div className="mt-2 font-mono text-[10px] sm:text-[11px] tracking-widest text-[#71717a] dark:text-[#a1a1aa] uppercase font-medium">
+          {currentStep.period}
+        </div>
+
+        <div className="mt-2.5 flex items-center gap-3">
+          <div className="flex items-center gap-1.5 font-mono text-xs text-[#525252] dark:text-[#a1a1aa] shrink-0">
+            <History className="w-3.5 h-3.5 text-[#71717a]" />
+            <span className="font-semibold text-[#171717] dark:text-white">
+              0{activeStep + 1}
+            </span>
+            <span>/ 0{TIMELINE_STEPS.length}</span>
+          </div>
+
+          <div className="relative flex-1 h-[2px] bg-[#171717]/15 dark:bg-white/15 overflow-hidden rounded-full">
+            <div
+              ref={mobileBarRef}
+              className="h-full w-full bg-[#171717] dark:bg-white origin-left scale-x-10"
+            />
+          </div>
+        </div>
+      </div>
+
       {/* Main Split Screen Container */}
-      <div ref={containerRef} className="relative max-w-7xl mx-auto px-6 sm:px-10 lg:px-12 flex flex-col lg:flex-row items-start z-10">
-        {/* Left column */}
-        <div ref={leftPanelRef} className="w-full lg:w-1/2 lg:min-h-screen lg:flex lg:flex-col lg:justify-center py-16 lg:py-0 pr-0 lg:pr-12 select-none">
-          {/* Centerpiece */}
+      <div
+        ref={containerRef}
+        className="relative max-w-7xl mx-auto px-6 sm:px-10 lg:px-12 flex flex-col lg:flex-row items-start z-10"
+      >
+        {/* Left column (Desktop Clock + Controls) */}
+        <div
+          ref={leftPanelRef}
+          className="hidden lg:flex w-full lg:w-1/2 lg:min-h-screen lg:flex-col lg:justify-center py-16 lg:py-0 pr-0 lg:pr-12 select-none"
+        >
           <div className="relative w-full max-w-[380px] sm:max-w-[440px] aspect-square flex flex-col justify-center my-2 mx-auto p-8">
             <svg
               ref={dialRef}
               className="absolute inset-0 w-full h-full pointer-events-none origin-center overflow-visible"
               viewBox="0 0 400 400"
             >
-              {/* Layer 1 (Inner Circle) */}
               <circle ref={ring1Ref} cx="200" cy="200" r="135" fill="none" stroke="currentColor" strokeWidth="0.75" className="text-[#e5e7eb] dark:text-white/10 origin-center" />
-              {/* Layer 2 (Middle Circle) */}
               <circle ref={ring2Ref} cx="200" cy="200" r="160" fill="none" stroke="currentColor" strokeWidth="0.75" strokeDasharray="3 5" className="text-[#d4d4d8] dark:text-white/15 origin-center" />
-              {/* Layer 3 (Outer Circle) */}
               <circle ref={ring3Ref} cx="200" cy="200" r="185" fill="none" stroke="currentColor" strokeWidth="1" className="text-[#e5e7eb] dark:text-white/10 origin-center" />
 
               <line x1="200" y1="10" x2="200" y2="24" stroke="currentColor" strokeWidth="1.5" className="text-[#a1a1aa] dark:text-white/30" />
@@ -288,9 +383,7 @@ export default function StorySection() {
               <text x="32" y="203" textAnchor="middle" className="text-[7px] font-mono fill-[#a1a1aa] dark:fill-white/30 select-none">270°</text>
             </svg>
 
-            {/* Content inside the circle */}
             <div className="relative z-10 flex flex-col items-start px-8 sm:px-10">
-              {/* My story */}
               <div className="flex items-center gap-1.5 mb-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-[#171717]/80 dark:bg-white/80" />
                 <span className="text-[11px] sm:text-xs font-mono tracking-widest text-[#737373] dark:text-[#a1a1aa] uppercase font-semibold">
@@ -298,17 +391,14 @@ export default function StorySection() {
                 </span>
               </div>
 
-              {/* Main Heading inside circle */}
               <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#171717] dark:text-white leading-[1.1] mb-3">
                 Let's go back in time.
               </h2>
 
-              {/* Year */}
               <div className="my-1">
                 <YearDisplay value={displayYear} />
               </div>
 
-              {/* Period & Counter matching */}
               <div className="w-full flex items-center justify-between font-mono text-[11px] sm:text-xs tracking-widest text-[#71717a] dark:text-[#a1a1aa] uppercase font-medium mt-3 pt-3 border-t border-[#171717]/10 dark:border-white/10">
                 <span>{currentStep.period.toUpperCase()}</span>
                 <div className="flex items-center gap-2">
@@ -319,16 +409,16 @@ export default function StorySection() {
             </div>
           </div>
 
-          {/* Quick Step Buttons Below Dial */}
           <div className="w-full max-w-[380px] sm:max-w-[440px] mx-auto px-4 mt-4 flex justify-center gap-2">
             {TIMELINE_STEPS.map((step, idx) => (
               <button
                 key={step.id}
                 onClick={() => handleStepClick(idx)}
-                className={`w-7 h-7 rounded-full text-xs font-mono font-bold transition-all cursor-pointer ${activeStep === idx
-                  ? 'bg-[#171717] dark:bg-white text-white dark:text-black shadow-sm scale-105'
-                  : 'bg-black/5 dark:bg-white/10 text-[#71717a] hover:text-[#171717] dark:hover:text-white'
-                  }`}
+                className={`w-7 h-7 rounded-full text-xs font-mono font-bold transition-all cursor-pointer ${
+                  activeStep === idx
+                    ? 'bg-[#171717] dark:bg-white text-white dark:text-black shadow-sm scale-105'
+                    : 'bg-black/5 dark:bg-white/10 text-[#71717a] hover:text-[#171717] dark:hover:text-white'
+                }`}
                 aria-label={`Jump to step 0${step.id}`}
               >
                 0{step.id}
@@ -338,14 +428,15 @@ export default function StorySection() {
         </div>
 
         {/* RIGHT COLUMN */}
-        <div ref={rightColRef} className="w-full lg:w-1/2 lg:ml-auto relative py-12 lg:pt-[25vh] lg:pb-24 pl-6 sm:pl-10 lg:pl-16">
-          {/* Vertical Timeline Spine Line */}
-          <div className="absolute left-3 sm:left-4 lg:left-6 top-16 bottom-24 w-[1px] bg-[#e5e7eb] dark:bg-white/10">
+        <div
+          ref={rightColRef}
+          className="w-full lg:w-1/2 lg:ml-auto relative pt-6 pb-20 lg:pt-[25vh] lg:pb-24 pl-4 sm:pl-10 lg:pl-16"
+        >
+          <div className="absolute left-2 sm:left-4 lg:left-6 top-8 bottom-24 w-[1px] bg-[#e5e7eb] dark:bg-white/10">
             <div ref={spineFillRef} className="w-full bg-[#171717] dark:bg-white origin-top h-0" />
           </div>
 
-          {/* Timeline Items Stack */}
-          <div className="flex flex-col gap-24 sm:gap-32">
+          <div className="flex flex-col gap-20 sm:gap-28 lg:gap-32">
             {TIMELINE_STEPS.map((step, idx) => {
               const isActive = activeStep === idx;
               return (
@@ -353,11 +444,11 @@ export default function StorySection() {
                   key={step.id}
                   ref={(el) => (itemRefs.current[idx] = el)}
                   onClick={() => handleStepClick(idx)}
-                  className={`timeline-item relative pl-8 sm:pl-12 cursor-pointer transition-all duration-500 ${isActive ? 'opacity-100' : 'opacity-40 hover:opacity-75'
-                    }`}
+                  className={`timeline-item relative pl-6 sm:pl-12 cursor-pointer transition-all duration-500 scroll-mt-44 lg:scroll-mt-0 ${
+                    isActive ? 'opacity-100' : 'opacity-40 hover:opacity-75'
+                  }`}
                 >
-                  {/* Timeline Node on Spine */}
-                  <div className="absolute left-[-24px] sm:left-[-32px] lg:left-[-40px] top-1.5 flex items-center justify-center">
+                  <div className="absolute left-[-20px] sm:left-[-32px] lg:left-[-40px] top-1.5 flex items-center justify-center">
                     {isActive ? (
                       <div className="w-6 h-6 rounded-full flex items-center justify-center border border-emerald-500/50 bg-emerald-500/10">
                         <div className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
@@ -369,22 +460,18 @@ export default function StorySection() {
                     )}
                   </div>
 
-                  {/* Period Tag */}
                   <div className="text-xs font-mono font-medium tracking-widest text-[#71717a] dark:text-[#a1a1aa] uppercase mb-2">
                     {step.period}
                   </div>
 
-                  {/* Role Title */}
                   <h3 className="text-2xl sm:text-3xl lg:text-[2rem] font-bold tracking-tight text-[#171717] dark:text-white mb-2 leading-snug">
                     {step.role}
                   </h3>
 
-                  {/* Organization */}
                   <p className="text-sm sm:text-base text-[#525252] dark:text-[#a1a1aa] font-medium mb-6">
                     {step.org}
                   </p>
 
-                  {/* Editorial Bullets */}
                   <ul className="space-y-3 max-w-xl">
                     {step.bullets.map((b, bIdx) => (
                       <li

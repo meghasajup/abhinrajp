@@ -1,6 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { ArrowLeft, ArrowUp } from 'lucide-react';
+import { ArrowLeft, ArrowUp, ArrowUpRight } from 'lucide-react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
@@ -10,73 +10,125 @@ if (typeof window !== 'undefined') {
 
 const PROJECTS = [
   {
-    id: 'expense-tracker',
-    num: '01',
-    iconUrl: '/images/apps/icon-expense-tracker.png',
-    category: 'IOS APP · FINANCE',
-    title: 'Expense Tracker',
-    subtitle: 'Personal finance · Expense management',
+    id: 'thelearnyn',
+    num: '01 / 05',
+    title: 'TheLearnyn',
+    category: 'ANDROID APP · AI EDTECH PLATFORM',
+    subtitle: 'AI-driven study tools, video courses & mock exams',
     description:
-      'A smart personal finance application designed to make money management effortless. Users can organise their finances into separate books, track daily expenses, manage budgets and monitor their spending habits. Features include intuitive expense tracking, organised financial records, and convenient iOS Shortcuts and Back Tap integration for a smoother experience.',
-    tags: ['Budget Management', 'Expense Books', 'iOS Shortcuts'],
-    badge: 'iPhone application · Screen recording available',
-    phoneUrl: '/images/apps/phone-expense-tracker.png',
-    reverse: false,
+      'A comprehensive educational ecosystem built on MVVM with Provider—featuring automated AI note generation, a conversational study chatbot, and a Mock Exam engine with dynamic AI explanations. Includes a multi-category video library with digital note-taking, dynamic PDF certificate generation, QR-based scorecard analytics, Cashfree payments, Deep Linking, and FCM notifications.',
+    tags: [
+      'Flutter & Provider (MVVM)',
+      'AI Study Suite & Mock Exams',
+      'PDF Engine & QR Analytics',
+      'Cashfree, Deep Links & FCM',
+    ],
+    badge: 'Live on Google Play',
+    websiteUrl: '', // Add the official project URL here.
+    iconUrl: '/images/apps/icon-thelearnyn.png',
+    phoneUrl: '/images/apps/phone-thelearnyn.png',
   },
   {
-    id: 'secret-vault',
-    num: '02',
-    iconUrl: '/images/apps/icon-secret-vault.png',
-    category: 'IOS APP · PRIVACY',
-    title: 'Secret Vault',
-    subtitle: 'Privacy protection · Secure photo storage',
+    id: 'namodeva',
+    num: '02 / 05',
+    title: 'NamoDeva',
+    category: 'ANDROID APP · CULTURAL PLATFORM',
+    subtitle: 'Cultural content, interactive gaming & media',
     description:
-      'A privacy-focused application that allows users to securely store their personal photos behind a calculator interface. Designed to look like an ordinary calculator, the app provides a discreet way to protect private content using an equation-based passcode. A simple interface combines privacy, convenience and secure personal storage.',
-    tags: ['Privacy Protection', 'Equation Passcode', 'Photo Vault'],
-    badge: 'iPhone application · Screen recording available',
-    phoneUrl: '/images/apps/phone-secret-vault.png',
-    reverse: true,
+      'A full-featured cultural platform with immersive animations, in-app gaming, and rich media content—built end-to-end in an Agile environment using MVC with GetX. Features custom Flutter animations, Unreal Engine video integrations, Firebase Authentication (Google Sign-In & Email), and FCM push notifications, deployed to Google Play with zero critical bugs across the first 3 sprints.',
+    tags: [
+      'Flutter & GetX (MVC)',
+      'In-App Gaming & Unreal Video',
+      'Firebase Auth & FCM',
+      'Google Play Live',
+    ],
+    badge: 'Live on Google Play',
+    websiteUrl: '', // Add the official project URL here.
+    iconUrl: '/images/apps/icon-namodeva.png',
+    phoneUrl: '/images/apps/phone-namodeva.png',
   },
   {
-    id: 'brick-breaker',
-    num: '03',
-    iconUrl: '/images/apps/icon-brick-breaker.png',
-    category: 'IOS GAME · ARCADE',
-    title: 'Brick Breaker',
-    subtitle: 'Arcade gaming · Pixel-art experience',
+    id: 'anyskill',
+    num: '03 / 05',
+    title: 'AnySkill',
+    category: 'ANDROID APP · AI EDTECH PLATFORM',
+    subtitle: 'AI-driven study tools, video courses & mock exams',
     description:
-      'A fun and engaging arcade game inspired by the classic brick-breaking experience. Players control a paddle to bounce the ball, destroy colourful brick formations and progress through challenging levels. Featuring pixel-art visuals, interactive gameplay, exciting power-ups and carefully designed levels for an entertaining mobile gaming experience.',
-    tags: ['Game Design', 'Power-ups', 'Level Design'],
-    badge: 'iPhone game · Gameplay recording available',
-    phoneUrl: '/images/apps/phone-brick-breaker.png',
-    reverse: false,
+      'A comprehensive educational ecosystem built on MVVM with Provider—featuring automated AI note generation, a conversational study chatbot, and a Mock Exam engine with dynamic AI explanations. Includes a multi-category video library with digital note-taking, dynamic PDF certificate generation, QR-based scorecard analytics, Cashfree payments, Deep Linking, and FCM notifications.',
+    tags: [
+      'Flutter & Provider (MVVM)',
+      'AI Study Suite & Mock Exams',
+      'PDF Engine & QR Analytics',
+      'Cashfree, Deep Links & FCM',
+    ],
+    badge: 'Live on Google Play',
+    websiteUrl: '', // Add the official project URL here.
+    iconUrl: '/images/apps/icon-thelearnyn.png',
+    phoneUrl: '/images/apps/phone-thelearnyn.png',
   },
   {
-    id: 'dice',
-    num: '04',
-    iconUrl: '/images/apps/icon-dice.png',
-    category: 'IOS APP · UTILITY',
-    title: 'Dice',
-    subtitle: 'Everyday utility · Digital dice roller',
+    id: 'taskpro',
+    num: '04 / 05',
+    title: 'Taskpro',
+    category: 'MOBILE APP · SERVICE MARKETPLACE',
+    subtitle: 'Freelance worker booking across user, worker & admin sides',
     description:
-      'A colourful and easy-to-use digital dice rolling application designed for quick and convenient everyday use. With a clean interface and simple interactions, users can roll dice instantly with a single tap. The application focuses on simplicity, smooth interactions and an enjoyable visual experience.',
-    tags: ['Utility App', 'Minimal UI', 'Tap to Roll'],
-    badge: 'iPhone application · Screen recording available',
-    phoneUrl: '/images/apps/phone-dice.png',
-    reverse: true,
+      'An advanced service booking platform connecting users with freelance workers—built with Clean Architecture and SOLID principles across user, worker, and admin experiences. Features BLoC, GetX, and Provider state management, Firebase (Firestore, Auth, Storage), Razorpay payments, Google Maps SDK discovery, real-time messaging, and adaptive UI for Android and iOS.',
+    tags: [
+      'Clean Architecture & SOLID',
+      'BLoC, GetX & Provider',
+      'Razorpay, Maps & Messaging',
+      'Firebase · Android & iOS',
+    ],
+    badge: 'Amazon Appstore · GitHub',
+    websiteUrl: '', // Add the official project URL here.
+    iconUrl: '/images/apps/icon-taskpro.png',
+    phoneUrl: '/images/apps/phone-taskpro.png',
+  },
+  {
+    id: 'pt-portal',
+    num: '05 / 05',
+    title: 'PT Portal',
+    category: 'MOBILE APP · FITNESS & COACHING',
+    subtitle: 'Personal trainer workflow, reminders & progress tracking',
+    description:
+      'A personal trainer and client management app built on MVVM architecture for clean UI-to-business-logic data binding. Uses Hive for fast local storage alongside a custom notification system for training reminders and ongoing progress tracking.',
+    tags: [
+      'MVVM Architecture',
+      'Hive Local Storage',
+      'Custom Reminders',
+      'Progress Tracking',
+    ],
+    badge: 'Amazon Appstore · GitHub',
+    websiteUrl: '', // Add the official project URL here.
+    iconUrl: '/images/apps/icon-pt-portal.png',
+    phoneUrl: '/images/apps/phone-pt-portal.png',
   },
 ];
 
 export default function AppDeployment({
-  onNavigate = () => { },
-  onOpenContact = () => { },
+  onNavigate = () => {},
+  onOpenContact = () => {},
 }) {
   const containerRef = useRef(null);
   const cardsContainerRef = useRef(null);
   const cardRefs = useRef([]);
   const overlayRefs = useRef([]);
+
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [isLeaving, setIsLeaving] = useState(false);
+  const [isMobileBackButton, setIsMobileBackButton] = useState(() =>
+    typeof window !== 'undefined' ? window.innerWidth < 768 : false
+  );
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(max-width: 767px)');
+    const updatePosition = () => setIsMobileBackButton(mediaQuery.matches);
+
+    updatePosition();
+    mediaQuery.addEventListener('change', updatePosition);
+    return () => mediaQuery.removeEventListener('change', updatePosition);
+  }, []);
 
   // Always start this page from the top
   useEffect(() => {
@@ -85,48 +137,57 @@ export default function AppDeployment({
     root.style.scrollBehavior = 'auto';
     window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
 
-    requestAnimationFrame(() => {
+    const frame = requestAnimationFrame(() => {
       root.style.scrollBehavior = previousBehavior;
     });
+
+    return () => {
+      cancelAnimationFrame(frame);
+      root.style.scrollBehavior = previousBehavior;
+    };
   }, []);
 
   // Entrance through the door portal
   useEffect(() => {
-    const prefersReducedMotion =
-      typeof window !== 'undefined' &&
-      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const container = containerRef.current;
+    if (!container) return undefined;
 
-    if (!prefersReducedMotion && containerRef.current) {
-      gsap.fromTo(
-        containerRef.current,
-        { opacity: 0, scale: 0.94 },
-        {
-          opacity: 1,
-          scale: 1,
-          duration: 0.55,
-          ease: 'power2.out',
-          onComplete: () => {
-            if (containerRef.current) {
-              gsap.set(containerRef.current, {
-                clearProps: 'transform,willChange',
-              });
-              containerRef.current.style.willChange = 'auto';
-            }
-            ScrollTrigger.refresh();
-          },
-        }
-      );
-    }
+    const prefersReducedMotion = window.matchMedia(
+      '(prefers-reduced-motion: reduce)'
+    ).matches;
+
+    if (prefersReducedMotion) return undefined;
+
+    const entranceTween = gsap.fromTo(
+      container,
+      { opacity: 0, scale: 0.94 },
+      {
+        opacity: 1,
+        scale: 1,
+        duration: 0.55,
+        ease: 'power2.out',
+        onComplete: () => {
+          if (containerRef.current) {
+            gsap.set(containerRef.current, {
+              clearProps: 'transform,willChange',
+            });
+          }
+          ScrollTrigger.refresh();
+        },
+      }
+    );
+
+    return () => entranceTween.kill();
   }, []);
 
-  const handleBackClick = (e) => {
-    if (e) e.preventDefault();
+  const handleBackClick = (event) => {
+    event?.preventDefault();
     if (isLeaving) return;
     setIsLeaving(true);
 
-    const prefersReducedMotion =
-      typeof window !== 'undefined' &&
-      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const prefersReducedMotion = window.matchMedia(
+      '(prefers-reduced-motion: reduce)'
+    ).matches;
 
     if (prefersReducedMotion || !containerRef.current) {
       onNavigate('/', { doorIndex: 2, isBack: true });
@@ -151,6 +212,7 @@ export default function AppDeployment({
 
   useEffect(() => {
     const handleScroll = () => setShowScrollTop(window.scrollY > 400);
+    handleScroll();
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
@@ -158,14 +220,14 @@ export default function AppDeployment({
   // Reliable stacked-card animation
   useEffect(() => {
     const stage = cardsContainerRef.current;
-    if (!stage) return;
+    if (!stage) return undefined;
 
     let refreshFrame = 0;
     const ctx = gsap.context(() => {
       const cards = cardRefs.current.filter(Boolean);
       const overlays = overlayRefs.current;
       const totalCards = cards.length;
-      if (!totalCards) return;
+      if (!totalCards) return undefined;
 
       const mm = gsap.matchMedia();
 
@@ -264,6 +326,7 @@ export default function AppDeployment({
         }
       );
       refreshFrame = requestAnimationFrame(() => ScrollTrigger.refresh());
+      return () => mm.revert();
     }, containerRef);
 
     const handleLoad = () => ScrollTrigger.refresh();
@@ -283,7 +346,7 @@ export default function AppDeployment({
       {/* Main surface */}
       <div
         ref={containerRef}
-        className="service-page-wrapper bg-[#faf5f2] dark:bg-[#1a1818] min-h-screen pt-24 sm:pt-28 pb-12 px-4 sm:px-8 md:px-12 w-full max-w-[84rem] mx-auto relative overflow-visible flex flex-col justify-between rounded-[28px] sm:rounded-[36px] md:rounded-[40px]"
+        className="service-page-wrapper bg-[var(--background)] text-[var(--foreground)] min-h-screen pt-24 sm:pt-28 pb-12 px-4 sm:px-8 md:px-12 w-full max-w-[84rem] mx-auto relative overflow-visible flex flex-col justify-between rounded-[28px] sm:rounded-[36px] md:rounded-[40px]"
       >
         <div className="w-full">
           {/* Page Header */}
@@ -292,7 +355,7 @@ export default function AppDeployment({
               App Development
             </h1>
             <p className="text-lg sm:text-xl text-foreground/75 leading-relaxed font-normal">
-              iOS apps and games, designed and built end to end: from the first screen and the small interactions to the details that make an app feel at home on iPhone.
+              Cross-platform mobile apps, designed and built end to end: from the first screen and smooth interactions to the native details that make an app feel right at home on both iOS and Android.
             </p>
           </div>
 
@@ -306,22 +369,27 @@ export default function AppDeployment({
               return (
                 <article
                   key={project.id}
-                  ref={(el) => (cardRefs.current[idx] = el)}
+                  ref={(el) => {
+                    cardRefs.current[idx] = el;
+                  }}
                   style={{ zIndex }}
                   className="absolute top-0 inset-x-0 w-full h-full rounded-[32px] sm:rounded-[36px] bg-white dark:bg-[#1e1b1b] border border-black/[0.06] dark:border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.06)] dark:shadow-[0_25px_50px_rgba(0,0,0,0.5)] p-6 sm:p-10 lg:p-12 overflow-hidden flex flex-col justify-between select-none"
                 >
                   {/* card recedes into stack */}
                   <div
-                    ref={(el) => (overlayRefs.current[idx] = el)}
+                    ref={(el) => {
+                      overlayRefs.current[idx] = el;
+                    }}
                     className="absolute inset-0 rounded-[32px] sm:rounded-[36px] bg-black pointer-events-none opacity-0 z-20"
                   />
                   <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 items-center gap-6 lg:gap-10 h-full">
                     {/* Text Content Column */}
                     <div
-                      className={`flex flex-col justify-between h-full ${project.reverse
-                          ? 'lg:col-span-7 lg:order-2'
-                          : 'lg:col-span-7 lg:order-1'
-                        }`}
+                      className={`flex flex-col justify-between h-full ${
+                        idx % 2 === 0
+                          ? 'lg:col-span-7 lg:order-1'
+                          : 'lg:col-span-7 lg:order-2'
+                      }`}
                     >
                       <div>
                         <div className="flex items-center justify-between gap-3 mb-4">
@@ -370,18 +438,34 @@ export default function AppDeployment({
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-2 pt-2 text-xs font-mono text-muted">
-                        <span className="w-2 h-2 rounded-full bg-foreground/35 dark:bg-foreground/45 inline-block" />
-                        <span>{project.badge}</span>
+                      <div className="flex flex-wrap items-center gap-3 pt-2">
+                        <div className="flex items-center gap-2 text-xs font-mono text-muted">
+                          <span className="w-2 h-2 rounded-full bg-foreground/35 dark:bg-foreground/45 inline-block flex-shrink-0" />
+                          <span>{project.badge}</span>
+                        </div>
+
+                        <a
+                          href={project.websiteUrl || '#'}
+                          target={project.websiteUrl ? '_blank' : undefined}
+                          rel={project.websiteUrl ? 'noopener noreferrer' : undefined}
+                          onClick={(e) => {
+                            if (!project.websiteUrl) e.preventDefault();
+                          }}
+                          className="inline-flex items-center gap-1.5 rounded-full bg-[#111111] px-4 py-2 text-xs font-semibold text-white shadow-sm transition-all hover:bg-[#333333] hover:scale-105 active:scale-95 dark:bg-[#f8f6f2] dark:text-[#111111] dark:hover:bg-white cursor-pointer"
+                        >
+                          <span>Visit</span>
+                          <ArrowUpRight className="h-3.5 w-3.5" />
+                        </a>
                       </div>
                     </div>
 
                     {/* Phone Mockup Column */}
                     <div
-                      className={`relative flex items-center justify-center select-none ${project.reverse
-                          ? 'lg:col-span-5 lg:order-1'
-                          : 'lg:col-span-5 lg:order-2'
-                        }`}
+                      className={`relative flex items-center justify-center select-none ${
+                        idx % 2 === 0
+                          ? 'lg:col-span-5 lg:order-2'
+                          : 'lg:col-span-5 lg:order-1'
+                      }`}
                     >
                       <div className="relative w-[220px] sm:w-[250px] lg:w-[270px] drop-shadow-[0_20px_35px_rgba(0,0,0,0.18)] dark:drop-shadow-[0_25px_40px_rgba(0,0,0,0.65)]">
                         <img
@@ -420,7 +504,8 @@ export default function AppDeployment({
                 boxSizing: 'border-box',
                 border: '2px solid #d5d0cd',
                 borderRadius: 'clamp(44px, 5vw, 88px)',
-                boxShadow: `0 0 0 100vmax #ffffff, inset 0 10px 24px -6px rgba(130, 118, 112, 0.28), inset 0 3px 8px -2px rgba(255, 255, 255, 0.9), inset 0 -10px 22px -6px rgba(130, 118, 112, 0.2), inset 10px 0 22px -6px rgba(130, 118, 112, 0.16), inset -10px 0 22px -6px rgba(130, 118, 112, 0.16)`,
+                boxShadow:
+                  '0 0 0 100vmax #ffffff, inset 0 10px 24px -6px rgba(130, 118, 112, 0.28), inset 0 3px 8px -2px rgba(255, 255, 255, 0.9), inset 0 -10px 22px -6px rgba(130, 118, 112, 0.2), inset 10px 0 22px -6px rgba(130, 118, 112, 0.16), inset -10px 0 22px -6px rgba(130, 118, 112, 0.16)',
                 pointerEvents: 'none',
               }}
             />
@@ -428,8 +513,15 @@ export default function AppDeployment({
             <button
               type="button"
               onClick={handleBackClick}
-              style={{ position: 'fixed', left: '16px', bottom: '56px', zIndex: 9999 }}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-pill text-xs font-mono font-medium hover:text-accent transition-colors cursor-pointer shadow-sm"
+              disabled={isLeaving}
+              style={{
+                position: 'fixed',
+                left: isMobileBackButton ? '16px' : '24px',
+                top: isMobileBackButton ? '16px' : 'auto',
+                bottom: isMobileBackButton ? 'auto' : '24px',
+                zIndex: 9999,
+              }}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-pill text-xs font-mono font-medium hover:text-accent transition-colors cursor-pointer shadow-sm disabled:opacity-60"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
               <span>Back to the doors</span>
@@ -439,10 +531,11 @@ export default function AppDeployment({
               type="button"
               onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
               style={{ position: 'fixed', right: '24px', bottom: '24px', zIndex: 9999 }}
-              className={`w-11 h-11 rounded-full bg-[#111111] text-white dark:bg-[#f8f6f2] dark:text-[#111111] shadow-2xl flex items-center justify-center transition-all duration-300 cursor-pointer hover:scale-110 active:scale-95 ${showScrollTop
+              className={`w-11 h-11 rounded-full bg-[#111111] text-white dark:bg-[#f8f6f2] dark:text-[#111111] shadow-2xl flex items-center justify-center transition-all duration-300 cursor-pointer hover:scale-110 active:scale-95 ${
+                showScrollTop
                   ? 'opacity-100 translate-y-0'
                   : 'opacity-0 translate-y-4 pointer-events-none'
-                }`}
+              }`}
               title="Scroll to top"
               aria-label="Scroll to top"
             >
