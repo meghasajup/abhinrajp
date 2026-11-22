@@ -24,7 +24,7 @@ const PROJECTS = [
       'Cashfree, Deep Links & FCM',
     ],
     badge: 'Live on Google Play',
-    websiteUrl: '', // Add the official project URL here.
+    websiteUrl: 'https://www.thelearnyn.com',
     iconUrl: '/images/apps/icon-thelearnyn.png',
     phoneUrl: '/images/apps/phone-thelearnyn.png',
   },
@@ -43,7 +43,7 @@ const PROJECTS = [
       'Google Play Live',
     ],
     badge: 'Live on Google Play',
-    websiteUrl: '', // Add the official project URL here.
+    websiteUrl: 'https://namodeva.com',
     iconUrl: '/images/apps/icon-namodeva.png',
     phoneUrl: '/images/apps/phone-namodeva.png',
   },
@@ -62,9 +62,9 @@ const PROJECTS = [
       'Cashfree, Deep Links & FCM',
     ],
     badge: 'Live on Google Play',
-    websiteUrl: '', // Add the official project URL here.
-    iconUrl: '/images/apps/icon-thelearnyn.png',
-    phoneUrl: '/images/apps/phone-thelearnyn.png',
+    websiteUrl: 'https://anyskill.com/',
+    iconUrl: '/images/apps/icon-anyskill.png',
+    phoneUrl: '/images/apps/phone-anyskill.png',
   },
   {
     id: 'taskpro',
@@ -81,7 +81,7 @@ const PROJECTS = [
       'Firebase · Android & iOS',
     ],
     badge: 'Amazon Appstore · GitHub',
-    websiteUrl: '', // Add the official project URL here.
+    websiteUrl: 'https://www.amazon.com/abhinraj-Taskpro/dp/B0DFWZY8GT',
     iconUrl: '/images/apps/icon-taskpro.png',
     phoneUrl: '/images/apps/phone-taskpro.png',
   },
@@ -100,7 +100,7 @@ const PROJECTS = [
       'Progress Tracking',
     ],
     badge: 'Amazon Appstore · GitHub',
-    websiteUrl: '', // Add the official project URL here.
+    websiteUrl: 'https://www.amazon.com/abhinraj-PT-Portal/dp/B0CW1B2Q8M',
     iconUrl: '/images/apps/icon-pt-portal.png',
     phoneUrl: '/images/apps/phone-pt-portal.png',
   },
