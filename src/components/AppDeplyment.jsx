@@ -8,6 +8,8 @@ if (typeof window !== 'undefined') {
   gsap.registerPlugin(ScrollTrigger);
 }
 
+const APP_DEPLOYMENT_DOOR_INDEX = 2;
+
 const PROJECTS = [
   {
     id: 'thelearnyn',
@@ -25,8 +27,9 @@ const PROJECTS = [
     ],
     badge: 'Live on Google Play',
     websiteUrl: 'https://www.thelearnyn.com',
-    iconUrl: '/images/apps/icon-thelearnyn.png',
     phoneUrl: '/images/apps/phone-thelearnyn.png',
+    accentColor: '#6366f1',
+    screenTheme: 'dark',
   },
   {
     id: 'namodeva',
@@ -44,8 +47,9 @@ const PROJECTS = [
     ],
     badge: 'Live on Google Play',
     websiteUrl: 'https://namodeva.com',
-    iconUrl: '/images/apps/icon-namodeva.png',
     phoneUrl: '/images/apps/phone-namodeva.png',
+    accentColor: '#f59e0b',
+    screenTheme: 'dark',
   },
   {
     id: 'anyskill',
@@ -63,8 +67,9 @@ const PROJECTS = [
     ],
     badge: 'Live on Google Play',
     websiteUrl: 'https://anyskill.com/',
-    iconUrl: '/images/apps/icon-anyskill.png',
     phoneUrl: '/images/apps/phone-anyskill.png',
+    accentColor: '#10b981',
+    screenTheme: 'dark',
   },
   {
     id: 'taskpro',
@@ -82,8 +87,9 @@ const PROJECTS = [
     ],
     badge: 'Amazon Appstore · GitHub',
     websiteUrl: 'https://www.amazon.com/abhinraj-Taskpro/dp/B0DFWZY8GT',
-    iconUrl: '/images/apps/icon-taskpro.png',
     phoneUrl: '/images/apps/phone-taskpro.png',
+    accentColor: '#1e293b',
+    screenTheme: 'light',
   },
   {
     id: 'pt-portal',
@@ -101,10 +107,82 @@ const PROJECTS = [
     ],
     badge: 'Amazon Appstore · GitHub',
     websiteUrl: 'https://www.amazon.com/abhinraj-PT-Portal/dp/B0CW1B2Q8M',
-    iconUrl: '/images/apps/icon-pt-portal.png',
     phoneUrl: '/images/apps/phone-pt-portal.png',
+    accentColor: '#ef4444',
+    screenTheme: 'dark',
   },
 ];
+
+function ScreenshotPhonePreview({ project }) {
+  return (
+    <div className="w-full h-full bg-[#0d0d0f] overflow-hidden flex items-center justify-center">
+      <img
+        src={project.phoneUrl}
+        onError={(e) => {
+          if (!e.target.dataset.triedFallback) {
+            e.target.dataset.triedFallback = 'true';
+            e.target.src = '.' + project.phoneUrl;
+          }
+        }}
+        alt={`${project.title} preview`}
+        className="block w-full h-full object-cover object-center select-none pointer-events-none"
+        loading="eager"
+        draggable="false"
+        onLoad={() => ScrollTrigger.refresh()}
+      />
+    </div>
+  );
+}
+
+function StationaryPhoneFrame({ project, index }) {
+  const phoneRef = useRef(null);
+
+  useEffect(() => {
+    const el = phoneRef.current;
+    if (!el) return undefined;
+
+    const prefersReducedMotion = window.matchMedia(
+      '(prefers-reduced-motion: reduce)'
+    ).matches;
+
+    if (prefersReducedMotion) return undefined;
+
+    const tiltDirection = index % 2 === 0 ? -7 : 7;
+
+    gsap.set(el, {
+      rotateY: tiltDirection,
+      rotateX: 4,
+      rotateZ: index % 2 === 0 ? -1.5 : 1.5,
+      transformPerspective: 1000,
+    });
+
+    const floatTween = gsap.to(el, {
+      y: -7,
+      rotateY: tiltDirection * 0.65,
+      duration: 2.6,
+      repeat: -1,
+      yoyo: true,
+      ease: 'sine.inOut',
+    });
+
+    return () => floatTween.kill();
+  }, [index]);
+
+  return (
+    <div
+      ref={phoneRef}
+      className="relative w-[112px] sm:w-[175px] lg:w-[196px] aspect-[9/19.2] rounded-[20px] sm:rounded-[28px] lg:rounded-[30px] bg-[#141416] p-[4px] sm:p-[6px] shadow-[0_20px_42px_rgba(0,0,0,0.26)] dark:shadow-[0_24px_52px_rgba(0,0,0,0.72)] border border-white/15"
+    >
+      <div className="absolute top-[8px] sm:top-[11px] left-1/2 -translate-x-1/2 z-30 w-[36px] sm:w-[52px] h-[9px] sm:h-[13px] rounded-full bg-black flex items-center justify-end pr-1.5">
+        <span className="w-1 h-1 rounded-full bg-white/20" />
+      </div>
+
+      <div className="relative w-full h-full rounded-[16px] sm:rounded-[22px] lg:rounded-[24px] overflow-hidden bg-black">
+        <ScreenshotPhonePreview project={project} />
+      </div>
+    </div>
+  );
+}
 
 export default function AppDeployment({
   onNavigate = () => {},
@@ -181,17 +259,20 @@ export default function AppDeployment({
   const navigateToDoors = () => {
     onNavigate('/#doors', {
       hash: '#doors',
-      doorIndex: 2,
+      doorIndex: APP_DEPLOYMENT_DOOR_INDEX,
       isBack: true,
-      preserveScroll: true,
-      skipDoorCenter: true,
+      afterExitScrollTarget: '#doors',
     });
   };
 
   const handleBackClick = (event) => {
     event?.preventDefault();
+    event?.stopPropagation();
+
     if (isLeaving) return;
     setIsLeaving(true);
+
+    ScrollTrigger.getAll().forEach((trigger) => trigger.kill(true));
 
     const prefersReducedMotion = window.matchMedia(
       '(prefers-reduced-motion: reduce)'
@@ -202,17 +283,21 @@ export default function AppDeployment({
       return;
     }
 
-    if (window.scrollY > 100) {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
+    const fallbackTimer = window.setTimeout(() => {
+      navigateToDoors();
+    }, 450);
 
+    gsap.killTweensOf(containerRef.current);
     gsap.to(containerRef.current, {
       opacity: 0,
       scale: 0.94,
       borderRadius: '48px',
-      duration: 0.38,
+      duration: 0.35,
       ease: 'power2.in',
-      onComplete: navigateToDoors,
+      onComplete: () => {
+        window.clearTimeout(fallbackTimer);
+        navigateToDoors();
+      },
     });
   };
 
@@ -350,12 +435,12 @@ export default function AppDeployment({
     <>
       <div
         ref={containerRef}
-        className="service-page-wrapper bg-[var(--background)] text-[var(--foreground)] min-h-screen pt-20 sm:pt-28 pb-12 px-4 sm:px-8 md:px-12 w-full max-w-[84rem] mx-auto relative overflow-visible flex flex-col justify-between rounded-[28px] sm:rounded-[36px] md:rounded-[40px]"
+        className="service-page-wrapper bg-[var(--background)] text-[var(--foreground)] min-h-screen pt-24 sm:pt-28 pb-12 px-4 sm:px-8 md:px-12 w-full max-w-[84rem] mx-auto relative overflow-visible flex flex-col justify-between rounded-[28px] sm:rounded-[36px] md:rounded-[40px]"
       >
         <div className="w-full">
           <div className="max-w-3xl mb-8 sm:mb-10">
             <h1 className="text-4xl sm:text-6xl md:text-7xl font-extrabold tracking-tight text-foreground mb-4">
-              App Development
+              App Deployment
             </h1>
             <p className="text-base sm:text-xl text-foreground/75 leading-relaxed font-normal">
               Cross-platform mobile apps, designed and built end to end: from the first screen and smooth interactions to the native details that make an app feel right at home on both iOS and Android.
@@ -385,9 +470,9 @@ export default function AppDeployment({
                   />
 
                   <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 items-center gap-3 sm:gap-6 lg:gap-10 h-full">
-                    {/* Text Content Column (below mockup on mobile, unchanged on lg+) */}
+                    {/* Text Content Column (vertically centered in its side) */}
                     <div
-                      className={`order-2 flex flex-col justify-between h-full min-w-0 ${
+                      className={`order-2 flex flex-col justify-center my-auto min-w-0 ${
                         idx % 2 === 0
                           ? 'lg:col-span-7 lg:order-1'
                           : 'lg:col-span-7 lg:order-2'
@@ -395,25 +480,9 @@ export default function AppDeployment({
                     >
                       <div>
                         <div className="flex items-center justify-between gap-2 mb-2 sm:mb-4">
-                          <div className="flex items-center gap-2.5 min-w-0">
-                            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl overflow-hidden shadow-sm flex-shrink-0 bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/10">
-                              <img
-                                src={project.iconUrl}
-                                onError={(e) => {
-                                  if (!e.target.dataset.triedFallback) {
-                                    e.target.dataset.triedFallback = 'true';
-                                    e.target.src = '.' + project.iconUrl;
-                                  }
-                                }}
-                                alt={`${project.title} icon`}
-                                className="w-full h-full object-cover"
-                                loading="eager"
-                              />
-                            </div>
-                            <span className="text-[10px] sm:text-xs font-mono font-semibold tracking-wider text-foreground/60 dark:text-foreground/50 uppercase truncate">
-                              {project.category}
-                            </span>
-                          </div>
+                          <span className="text-[10px] sm:text-xs font-mono font-semibold tracking-wider text-foreground/60 dark:text-foreground/50 uppercase truncate">
+                            {project.category}
+                          </span>
                           <span className="text-[10px] sm:text-xs font-mono text-muted flex-shrink-0">
                             {project.num}
                           </span>
@@ -461,27 +530,18 @@ export default function AppDeployment({
                       </div>
                     </div>
 
-                    {/* Phone Mockup Column (on top on mobile, unchanged on lg+) */}
+                    {/* Phone Mockup Column */}
                     <div
-                      className={`order-1 relative flex h-[175px] sm:h-[220px] lg:h-auto items-center justify-center select-none ${
+                      className={`order-1 relative flex h-[200px] sm:h-[240px] lg:h-auto items-center justify-center select-none ${
                         idx % 2 === 0
                           ? 'lg:col-span-5 lg:order-2'
                           : 'lg:col-span-5 lg:order-1'
                       }`}
                     >
-                      <div className="relative h-full w-auto max-w-full lg:h-auto lg:w-[270px] drop-shadow-[0_20px_35px_rgba(0,0,0,0.18)] dark:drop-shadow-[0_25px_40px_rgba(0,0,0,0.65)] flex items-center justify-center">
-                        <img
-                          src={project.phoneUrl}
-                          onError={(e) => {
-                            if (!e.target.dataset.triedFallback) {
-                              e.target.dataset.triedFallback = 'true';
-                              e.target.src = '.' + project.phoneUrl;
-                            }
-                          }}
-                          alt={`${project.title} preview`}
-                          className="h-full w-auto max-w-full object-contain select-none pointer-events-none lg:h-auto lg:w-full"
-                          loading="eager"
-                          onLoad={() => ScrollTrigger.refresh()}
+                      <div className="scale-[0.78] sm:scale-95 lg:scale-100 origin-center flex items-center justify-center">
+                        <StationaryPhoneFrame
+                          project={project}
+                          index={idx}
                         />
                       </div>
                     </div>
@@ -517,12 +577,15 @@ export default function AppDeployment({
               disabled={isLeaving}
               style={{
                 position: 'fixed',
-                left: isMobileBackButton ? '16px' : '24px',
-                top: isMobileBackButton ? '16px' : 'auto',
+                left: isMobileBackButton ? '20px' : '24px',
+                top: isMobileBackButton
+                  ? 'max(20px, env(safe-area-inset-top, 20px))'
+                  : 'auto',
                 bottom: isMobileBackButton ? 'auto' : '24px',
-                zIndex: 9999,
+                zIndex: 10001,
+                pointerEvents: 'auto',
               }}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-pill text-xs font-mono font-medium hover:text-accent transition-colors cursor-pointer shadow-sm disabled:opacity-60"
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-full glass-pill text-xs font-mono font-medium hover:text-accent active:scale-95 transition-all cursor-pointer shadow-md disabled:opacity-60 touch-manipulation select-none"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
               <span>Back to the doors</span>
