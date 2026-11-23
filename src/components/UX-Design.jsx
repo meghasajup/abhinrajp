@@ -25,7 +25,7 @@ const PROJECTS = [
       'An AI-powered learning platform built around study tools and exam preparation. The app brings together mock exams, PDF and QR-based analytics, payment flows, deep links and push notifications in one mobile experience.',
     tags: ['Flutter', 'Provider · MVVM', 'AI learning', 'Mock exams'],
     badge: 'Live on Google Play',
-    websiteUrl: '',
+    websiteUrl: 'https://www.thelearnyn.com/',
     phoneUrl: theLearnyn,
   },
   {
@@ -38,7 +38,7 @@ const PROJECTS = [
       'A cultural mobile platform combining content and interactive experiences. The app includes in-app gaming, video experiences, Firebase authentication and push notifications, with its app architecture built using Flutter and GetX.',
     tags: ['Flutter', 'GetX · MVC', 'Firebase', 'Interactive experiences'],
     badge: 'Live on Google Play',
-    websiteUrl: '',
+    websiteUrl: 'https://namodeva.com/',
     phoneUrl: namodeva,
   },
   {
@@ -51,7 +51,7 @@ const PROJECTS = [
       'A mobile learning experience focused on making skill development accessible through a clear, easy-to-use app interface. The project details and visual assets currently reuse the AnySkill information available in the existing App Development project data.',
     tags: ['Mobile UI', 'Learning experience', 'App interface'],
     badge: 'Project details to be refined',
-    websiteUrl: '',
+    websiteUrl: 'https://anyskill.com/',
     phoneUrl: anyskill,
   },
   {
@@ -64,7 +64,7 @@ const PROJECTS = [
       'A mobile service marketplace connecting customers with service providers. The app brings together service discovery, messaging, maps and payments, supported by Firebase integrations and a maintainable architecture.',
     tags: ['Clean Architecture', 'BLoC · GetX · Provider', 'Razorpay', 'Maps & messaging'],
     badge: 'Amazon Appstore · GitHub',
-    websiteUrl: '',
+    websiteUrl: 'https://www.amazon.com/abhinraj-Taskpro/dp/B0DFWZY8GT',
     phoneUrl: taskpro,
   },
   {
@@ -77,7 +77,7 @@ const PROJECTS = [
       'A fitness and coaching app designed to help users follow their progress and stay consistent. The experience includes progress tracking, reminders and locally stored app data, built around an MVVM approach.',
     tags: ['MVVM', 'Hive', 'Progress tracking', 'Reminders'],
     badge: 'Amazon Appstore · GitHub',
-    websiteUrl: '',
+    websiteUrl: 'https://www.amazon.com/abhinraj-PT-Portal/dp/B0CW1B2Q8M',
     phoneUrl: ptportal,
   },
 ];
@@ -160,15 +160,18 @@ export default function UiUxDesign({
       hash: '#doors',
       doorIndex: 1,
       isBack: true,
-      preserveScroll: true,
-      skipDoorCenter: true,
+      afterExitScrollTarget: '#doors',
     });
   };
 
   const handleBackClick = (event) => {
     event?.preventDefault();
+    event?.stopPropagation();
+
     if (isLeaving) return;
     setIsLeaving(true);
+
+    ScrollTrigger.getAll().forEach((trigger) => trigger.kill(true));
 
     const prefersReducedMotion = window.matchMedia(
       '(prefers-reduced-motion: reduce)'
@@ -179,17 +182,21 @@ export default function UiUxDesign({
       return;
     }
 
-    if (window.scrollY > 100) {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
+    const fallbackTimer = window.setTimeout(() => {
+      navigateToDoors();
+    }, 450);
 
+    gsap.killTweensOf(containerRef.current);
     gsap.to(containerRef.current, {
       opacity: 0,
       scale: 0.94,
       borderRadius: '48px',
-      duration: 0.38,
+      duration: 0.35,
       ease: 'power2.in',
-      onComplete: navigateToDoors,
+      onComplete: () => {
+        window.clearTimeout(fallbackTimer);
+        navigateToDoors();
+      },
     });
   };
 
@@ -500,12 +507,15 @@ export default function UiUxDesign({
               disabled={isLeaving}
               style={{
                 position: 'fixed',
-                left: isMobileBackButton ? '16px' : '24px',
-                top: isMobileBackButton ? '16px' : 'auto',
+                left: isMobileBackButton ? '20px' : '24px',
+                top: isMobileBackButton
+                  ? 'max(20px, env(safe-area-inset-top, 20px))'
+                  : 'auto',
                 bottom: isMobileBackButton ? 'auto' : '24px',
-                zIndex: 9999,
+                zIndex: 10001,
+                pointerEvents: 'auto',
               }}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-pill text-xs font-mono font-medium hover:text-accent transition-colors cursor-pointer shadow-sm disabled:opacity-60"
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-full glass-pill text-xs font-mono font-medium hover:text-accent active:scale-95 transition-all cursor-pointer shadow-md disabled:opacity-60 touch-manipulation select-none"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
               <span>Back to the doors</span>
