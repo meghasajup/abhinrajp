@@ -36,6 +36,13 @@ const getDoorIndexFromTarget = (target = '') => {
   return -1;
 };
 
+const getDoorIndexFromRoute = (route = '') => {
+  if (route.includes('app-developer')) return 0;
+  if (route.includes('ui-ux')) return 1;
+  if (route.includes('app-deployment')) return 2;
+  return -1;
+};
+
 export default function App() {
   const [currentRoute, setCurrentRoute] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -54,13 +61,8 @@ export default function App() {
 
   const [activeDoorIndex, setActiveDoorIndex] = useState(() => {
     if (typeof window !== 'undefined') {
-      const path = window.location.pathname || '';
-
-      if (path.includes('app-developer')) return 0;
-      if (path.includes('ui-ux')) return 1;
-      if (path.includes('app-deployment')) return 2;
+      return getDoorIndexFromRoute(window.location.pathname || '');
     }
-
     return -1;
   });
 
@@ -78,6 +80,7 @@ export default function App() {
   const entranceTimeoutRef = useRef(null);
   const afterExitTargetRef = useRef(null);
   const scrollWaitCleanupRef = useRef(null);
+  const previousRouteRef = useRef(currentRoute);
 
   // Cleanup timers and pending scroll animation
   useEffect(() => {
@@ -162,14 +165,39 @@ export default function App() {
     };
   }, [currentRoute]);
 
-  // Scroll to top on service page
+  // Helper to land cleanly on #doors section without touching footer
+  const focusDoorsSectionInstant = useCallback(() => {
+    const doorsEl = document.getElementById('doors');
+    if (doorsEl) {
+      const rect = doorsEl.getBoundingClientRect();
+      const targetTop = Math.max(
+        0,
+        window.scrollY + rect.top - Math.max(0, (window.innerHeight - rect.height) / 2)
+      );
+      window.scrollTo({
+        top: targetTop,
+        left: 0,
+        behavior: 'instant'
+      });
+    }
+  }, []);
+
+  // Scroll to top when entering a service page
   useEffect(() => {
+    const prevRoute = previousRouteRef.current;
+    previousRouteRef.current = currentRoute;
+
     if (currentRoute !== '/') {
-      window.scrollTo(0, 0);
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
       setShowScrollTop(false);
       setActiveSection('');
+    } else if (prevRoute !== '/' && isDoorsExiting) {
+      // Ensure we land directly on #doors section when reverse door close starts
+      requestAnimationFrame(() => {
+        focusDoorsSectionInstant();
+      });
     }
-  }, [currentRoute]);
+  }, [currentRoute, isDoorsExiting, focusDoorsSectionInstant]);
 
   // Service page entrance animation
   useEffect(() => {
@@ -253,8 +281,6 @@ export default function App() {
 
         previousTop = currentTop;
 
-        // Scroll is stable for several frames
-        // or maximum waiting time has been reached
         if (stableFrames >= 8 || elapsed >= 3500) {
           if (!cancelled) {
             scrollWaitCleanupRef.current = null;
@@ -269,7 +295,6 @@ export default function App() {
 
       animationFrame = requestAnimationFrame(checkScroll);
 
-      // Return cleanup function
       return () => {
         cancelled = true;
 
@@ -281,49 +306,47 @@ export default function App() {
     []
   );
 
-  const scrollAfterDoorClose = useCallback((scrollTarget) => {
-    setTimeout(() => {
-      if (scrollTarget === '#home') {
-        const heroEl = document.getElementById('home');
-
-        if (heroEl) {
-          heroEl.scrollIntoView({
-            behavior: 'smooth',
-            block: 'start'
-          });
-        } else {
-          window.scrollTo({
-            top: 0,
-            behavior: 'smooth'
-          });
-        }
-
+  const scrollAfterDoorClose = useCallback(
+    (scrollTarget) => {
+      // Only scroll away from #doors if an explicit non-door target like #home or #about was requested
+      if (!scrollTarget || scrollTarget === '#doors' || scrollTarget === '#works') {
+        focusDoorsSectionInstant();
         return;
       }
 
-      if (scrollTarget && scrollTarget.startsWith('#')) {
-        const targetEl = document.querySelector(scrollTarget);
+      setTimeout(() => {
+        if (scrollTarget === '#home') {
+          const heroEl = document.getElementById('home');
 
-        if (targetEl) {
-          targetEl.scrollIntoView({
-            behavior: 'smooth',
-            block: 'start'
-          });
+          if (heroEl) {
+            heroEl.scrollIntoView({
+              behavior: 'smooth',
+              block: 'start'
+            });
+          } else {
+            window.scrollTo({
+              top: 0,
+              behavior: 'smooth'
+            });
+          }
 
           return;
         }
-      }
 
-      const doorsEl = document.getElementById('doors');
+        if (scrollTarget.startsWith('#')) {
+          const targetEl = document.querySelector(scrollTarget);
 
-      if (doorsEl) {
-        doorsEl.scrollIntoView({
-          behavior: 'smooth',
-          block: 'center'
-        });
-      }
-    }, 60);
-  }, []);
+          if (targetEl) {
+            targetEl.scrollIntoView({
+              behavior: 'smooth',
+              block: 'start'
+            });
+          }
+        }
+      }, 60);
+    },
+    [focusDoorsSectionInstant]
+  );
 
   // COMPLETE HANDLER FOR REVERSE DOOR EXIT ANIMATION
   const handleExitComplete = useCallback(() => {
@@ -339,15 +362,7 @@ export default function App() {
       setActiveDoorIndex(-1);
 
       afterExitTargetRef.current = null;
-
-      const doorsEl = document.getElementById('doors');
-
-      if (doorsEl) {
-        doorsEl.scrollIntoView({
-          behavior: 'instant',
-          block: 'center'
-        });
-      }
+      focusDoorsSectionInstant();
 
       if (chainTimeoutRef.current) {
         clearTimeout(chainTimeoutRef.current);
@@ -399,7 +414,8 @@ export default function App() {
   }, [
     pendingRoute,
     pendingDoorIndex,
-    scrollAfterDoorClose
+    scrollAfterDoorClose,
+    focusDoorsSectionInstant
   ]);
 
   // MASTER NAVIGATION HANDLER
@@ -465,7 +481,9 @@ export default function App() {
         const exitIdx =
           activeDoorIndex >= 0
             ? activeDoorIndex
-            : 0;
+            : getDoorIndexFromRoute(currentRoute) >= 0
+              ? getDoorIndexFromRoute(currentRoute)
+              : 0;
 
         afterExitTargetRef.current = null;
 
@@ -491,25 +509,11 @@ export default function App() {
           return;
         }
 
-        const doorsEl = document.getElementById('doors');
-
-        if (doorsEl) {
-          doorsEl.scrollIntoView({
-            behavior: 'instant',
-            block: 'center'
-          });
-        } else {
-          window.scrollTo({
-            top: window.innerHeight,
-            behavior: 'instant'
-          });
-        }
-
         gsap.to(serviceWrapperRef.current, {
           opacity: 0,
           scale: 0.94,
           borderRadius: '48px',
-          duration: 0.6,
+          duration: 0.55,
           ease: 'sine.inOut',
 
           onComplete: () => {
@@ -522,6 +526,10 @@ export default function App() {
             } catch (e) {
               window.location.hash = '';
             }
+
+            requestAnimationFrame(() => {
+              focusDoorsSectionInstant();
+            });
           }
         });
 
@@ -544,16 +552,19 @@ export default function App() {
 
         isTransitioningRef.current = true;
 
+        // Detect which section's door should reverse-close
         const exitIdx =
           doorIndex !== undefined
             ? doorIndex
             : activeDoorIndex >= 0
               ? activeDoorIndex
-              : 0;
+              : getDoorIndexFromRoute(currentRoute) >= 0
+                ? getDoorIndexFromRoute(currentRoute)
+                : 0;
 
         const resolvedScrollTarget =
           afterExitScrollTarget ||
-          (target === '#home' ? '#home' : null);
+          (target === '#home' ? '#home' : '#doors');
 
         afterExitTargetRef.current = resolvedScrollTarget;
 
@@ -574,7 +585,9 @@ export default function App() {
           window.history.pushState(null, '', '/');
           setIsMenuOpen(false);
 
-          scrollAfterDoorClose(resolvedScrollTarget);
+          requestAnimationFrame(() => {
+            scrollAfterDoorClose(resolvedScrollTarget);
+          });
           return;
         }
 
@@ -609,25 +622,11 @@ export default function App() {
           return;
         }
 
-        const doorsEl = document.getElementById('doors');
-
-        if (doorsEl) {
-          doorsEl.scrollIntoView({
-            behavior: 'instant',
-            block: 'center'
-          });
-        } else {
-          window.scrollTo({
-            top: window.innerHeight,
-            behavior: 'instant'
-          });
-        }
-
         gsap.to(serviceWrapperRef.current, {
           opacity: 0,
           scale: 0.94,
           borderRadius: '48px',
-          duration: 0.6,
+          duration: 0.55,
           ease: 'sine.inOut',
 
           onComplete: () => {
@@ -640,6 +639,10 @@ export default function App() {
             } catch (e) {
               window.location.hash = '';
             }
+
+            requestAnimationFrame(() => {
+              focusDoorsSectionInstant();
+            });
           }
         });
 
@@ -672,7 +675,6 @@ export default function App() {
       }
 
       // 4. FORWARD ENTRY FROM HOME PAGE
-      // Scroll to doors first, then open the selected door.
       const targetDoorIdx =
         doorIndex !== undefined
           ? doorIndex
@@ -692,7 +694,6 @@ export default function App() {
           return;
         }
 
-        // Cancel any previous pending scroll check
         if (scrollWaitCleanupRef.current) {
           scrollWaitCleanupRef.current();
           scrollWaitCleanupRef.current = null;
@@ -736,13 +737,11 @@ export default function App() {
           return;
         }
 
-        // Smooth scroll to door section
         doorsEl.scrollIntoView({
           behavior: 'smooth',
           block: 'center'
         });
 
-        // Wait for scroll completion before opening door
         scrollWaitCleanupRef.current =
           waitForScrollToFinish(
             doorsEl,
@@ -816,7 +815,8 @@ export default function App() {
       currentRoute,
       activeDoorIndex,
       scrollAfterDoorClose,
-      waitForScrollToFinish
+      waitForScrollToFinish,
+      focusDoorsSectionInstant
     ]
   );
 
@@ -830,23 +830,18 @@ export default function App() {
         (newPath === '/' || newPath === '')
       ) {
         navigateTo('/', {
-          isBack: true
+          isBack: true,
+          doorIndex: getDoorIndexFromRoute(currentRoute)
         });
 
         return;
       }
 
       if (currentRoute === '/' && newPath !== '/') {
-        let doorIdx = 0;
-
-        if (newPath.includes('ui-ux')) {
-          doorIdx = 1;
-        } else if (newPath.includes('app-deployment')) {
-          doorIdx = 2;
-        }
+        const doorIdx = getDoorIndexFromRoute(newPath);
 
         navigateTo(newPath, {
-          doorIndex: doorIdx
+          doorIndex: doorIdx >= 0 ? doorIdx : 0
         });
 
         return;

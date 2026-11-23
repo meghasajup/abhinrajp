@@ -161,7 +161,10 @@ function StationaryPhoneFrame({ project, index }) {
   }, [index]);
 
   return (
-    <div ref={phoneRef} className="relative w-[112px] sm:w-[175px] lg:w-[196px] aspect-[9/19.2] rounded-[20px] sm:rounded-[28px] lg:rounded-[30px] bg-[#141416] p-[4px] sm:p-[6px] shadow-[0_20px_42px_rgba(0,0,0,0.26)] dark:shadow-[0_24px_52px_rgba(0,0,0,0.72)] border border-white/15">
+    <div
+      ref={phoneRef}
+      className="relative w-[112px] sm:w-[175px] lg:w-[196px] aspect-[9/19.2] rounded-[20px] sm:rounded-[28px] lg:rounded-[30px] bg-[#141416] p-[4px] sm:p-[6px] shadow-[0_20px_42px_rgba(0,0,0,0.26)] dark:shadow-[0_24px_52px_rgba(0,0,0,0.72)] border border-white/15"
+    >
       <div className="absolute top-[8px] sm:top-[11px] left-1/2 -translate-x-1/2 z-30 w-[36px] sm:w-[52px] h-[9px] sm:h-[13px] rounded-full bg-black flex items-center justify-end pr-1.5">
         <span className="w-1 h-1 rounded-full bg-white/20" />
       </div>
@@ -176,8 +179,8 @@ function StationaryPhoneFrame({ project, index }) {
 
 // Main component
 export default function AppDevelopment({
-  onNavigate = () => { },
-  onOpenContact = () => { },
+  onNavigate = () => {},
+  onOpenContact = () => {},
 }) {
   const containerRef = useRef(null);
   const cardsContainerRef = useRef(null);
@@ -189,24 +192,20 @@ export default function AppDevelopment({
   const [isLeaving, setIsLeaving] = useState(false);
 
   const [isMobileBackButton, setIsMobileBackButton] = useState(() =>
-    typeof window !== 'undefined'
-      ? window.innerWidth < 768
-      : false
+    typeof window !== 'undefined' ? window.innerWidth < 768 : false
   );
 
   // Responsive back button
   useEffect(() => {
     const mediaQuery = window.matchMedia('(max-width: 767px)');
 
-    const updatePosition = () =>
-      setIsMobileBackButton(mediaQuery.matches);
+    const updatePosition = () => setIsMobileBackButton(mediaQuery.matches);
 
     updatePosition();
 
     mediaQuery.addEventListener('change', updatePosition);
 
-    return () =>
-      mediaQuery.removeEventListener('change', updatePosition);
+    return () => mediaQuery.removeEventListener('change', updatePosition);
   }, []);
 
   // Reset scroll position
@@ -232,7 +231,7 @@ export default function AppDevelopment({
     };
   }, []);
 
-  // Page entrace animation
+  // Page entrance animation
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return undefined;
@@ -269,28 +268,28 @@ export default function AppDevelopment({
     return () => entranceTween.kill();
   }, []);
 
-  // Back navigation
+  // Back navigation -> reverse-close App Development door (doorIndex: 0) at #doors
   const navigateToDoors = () => {
     onNavigate('/#doors', {
       hash: '#doors',
       doorIndex: 0,
       isBack: true,
-      preserveScroll: true,
-      skipDoorCenter: true,
+      afterExitScrollTarget: '#doors',
     });
   };
 
   const handleBackClick = (event) => {
     event?.preventDefault();
+    event?.stopPropagation();
 
     if (isLeaving) return;
-
     setIsLeaving(true);
 
     if (scrollTriggerRef.current) {
-      scrollTriggerRef.current.kill(false);
+      scrollTriggerRef.current.kill(true);
       scrollTriggerRef.current = null;
     }
+    ScrollTrigger.getAll().forEach((trigger) => trigger.kill(true));
 
     const prefersReducedMotion = window.matchMedia(
       '(prefers-reduced-motion: reduce)'
@@ -301,27 +300,27 @@ export default function AppDevelopment({
       return;
     }
 
-    if (window.scrollY > 100) {
-      window.scrollTo({
-        top: 0,
-        behavior: 'smooth',
-      });
-    }
+    const fallbackTimer = window.setTimeout(() => {
+      navigateToDoors();
+    }, 450);
 
+    gsap.killTweensOf(containerRef.current);
     gsap.to(containerRef.current, {
       opacity: 0,
       scale: 0.94,
       borderRadius: '48px',
-      duration: 0.38,
+      duration: 0.35,
       ease: 'power2.in',
-      onComplete: navigateToDoors,
+      onComplete: () => {
+        window.clearTimeout(fallbackTimer);
+        navigateToDoors();
+      },
     });
   };
 
   // Scroll to top visibility
   useEffect(() => {
-    const handleScroll = () =>
-      setShowScrollTop(window.scrollY > 400);
+    const handleScroll = () => setShowScrollTop(window.scrollY > 400);
 
     handleScroll();
 
@@ -329,8 +328,7 @@ export default function AppDevelopment({
       passive: true,
     });
 
-    return () =>
-      window.removeEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   // Card stack
@@ -382,11 +380,7 @@ export default function AppDevelopment({
         },
       });
 
-      for (
-        let index = 1;
-        index < totalCards;
-        index += 1
-      ) {
+      for (let index = 1; index < totalCards; index += 1) {
         const startAt = timeline.duration();
 
         timeline.fromTo(
@@ -404,20 +398,14 @@ export default function AppDevelopment({
           startAt
         );
 
-        for (
-          let previous = 0;
-          previous < index;
-          previous += 1
-        ) {
+        for (let previous = 0; previous < index; previous += 1) {
           const depth = index - previous;
 
           const targetScale = isMobile
             ? Math.max(0.94, 1 - depth * 0.025)
             : Math.max(0.88, 1 - depth * 0.04);
 
-          const targetY = isMobile
-            ? -depth * 7
-            : -depth * 12;
+          const targetY = isMobile ? -depth * 7 : -depth * 12;
 
           const targetOverlay = Math.min(
             isMobile ? 0.24 : 0.3,
@@ -454,10 +442,7 @@ export default function AppDevelopment({
         trigger: stage,
         animation: timeline,
         start: isMobile ? 'top top+=72' : 'top top+=88',
-        end: () =>
-          `+=${Math.ceil(
-            window.innerHeight * (totalCards - 1)
-          )}`,
+        end: () => `+=${Math.ceil(window.innerHeight * (totalCards - 1))}`,
         scrub: 0.45,
         pin: stage,
         pinSpacing: true,
@@ -481,13 +466,9 @@ export default function AppDevelopment({
       };
     };
 
-    mm.add('(min-width: 768px)', () =>
-      buildStack(false)
-    );
+    mm.add('(min-width: 768px)', () => buildStack(false));
 
-    mm.add('(max-width: 767px)', () =>
-      buildStack(true)
-    );
+    mm.add('(max-width: 767px)', () => buildStack(true));
 
     const refresh = () => ScrollTrigger.refresh();
 
@@ -509,7 +490,10 @@ export default function AppDevelopment({
   // Render
   return (
     <>
-      <div ref={containerRef} className="service-page-wrapper bg-[var(--background)] text-[var(--foreground)] min-h-screen pt-20 sm:pt-28 pb-12 px-4 sm:px-8 md:px-12 w-full max-w-[84rem] mx-auto relative overflow-visible flex flex-col justify-between rounded-[28px] sm:rounded-[36px] md:rounded-[40px]">
+      <div
+        ref={containerRef}
+        className="service-page-wrapper bg-[var(--background)] text-[var(--foreground)] min-h-screen pt-24 sm:pt-28 pb-12 px-4 sm:px-8 md:px-12 w-full max-w-[84rem] mx-auto relative overflow-visible flex flex-col justify-between rounded-[28px] sm:rounded-[36px] md:rounded-[40px]"
+      >
         <div className="w-full">
           {/* Page heading */}
           <div className="max-w-3xl mb-8 sm:mb-10">
@@ -523,7 +507,10 @@ export default function AppDevelopment({
           </div>
 
           {/* Project cards */}
-          <div ref={cardsContainerRef} className="relative isolate w-full h-[640px] sm:h-[660px] lg:h-[640px] mb-8 overflow-visible">
+          <div
+            ref={cardsContainerRef}
+            className="relative isolate w-full h-[640px] sm:h-[660px] lg:h-[640px] mb-8 overflow-visible"
+          >
             {PROJECTS.map((project, idx) => {
               const zIndex = 10 * (idx + 1);
               const isEven = idx % 2 === 0;
@@ -534,18 +521,25 @@ export default function AppDevelopment({
                   ref={(el) => {
                     cardRefs.current[idx] = el;
                   }}
-                  style={{ zIndex }} className="absolute top-0 inset-x-0 w-full h-full rounded-[28px] sm:rounded-[36px] bg-white dark:bg-[#1e1b1b] border border-black/[0.06] dark:border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.06)] dark:shadow-[0_25px_50px_rgba(0,0,0,0.5)] p-4 sm:p-10 lg:p-12 overflow-hidden flex flex-col justify-center select-none">
+                  style={{ zIndex }}
+                  className="absolute top-0 inset-x-0 w-full h-full rounded-[28px] sm:rounded-[36px] bg-white dark:bg-[#1e1b1b] border border-black/[0.06] dark:border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.06)] dark:shadow-[0_25px_50px_rgba(0,0,0,0.5)] p-4 sm:p-10 lg:p-12 overflow-hidden flex flex-col justify-center select-none"
+                >
                   {/* Card Overlay */}
                   <div
                     ref={(el) => {
                       overlayRefs.current[idx] = el;
-                    }} className="absolute inset-0 rounded-[28px] sm:rounded-[36px] bg-black pointer-events-none opacity-0 z-20" />
+                    }}
+                    className="absolute inset-0 rounded-[28px] sm:rounded-[36px] bg-black pointer-events-none opacity-0 z-20"
+                  />
                   <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 items-center gap-3 sm:gap-6 lg:gap-10 w-full">
                     {/* Project details */}
-                    <div className={`order-2 flex flex-col justify-center min-w-0 ${isEven
-                      ? 'lg:col-span-7 lg:order-1'
-                      : 'lg:col-span-7 lg:order-2'
-                      }`}>
+                    <div
+                      className={`order-2 flex flex-col justify-center min-w-0 ${
+                        isEven
+                          ? 'lg:col-span-7 lg:order-1'
+                          : 'lg:col-span-7 lg:order-2'
+                      }`}
+                    >
                       <div className="flex items-center justify-between gap-2 mb-2 sm:mb-3">
                         <span className="text-[10px] sm:text-xs font-mono font-semibold tracking-wider text-foreground/60 dark:text-foreground/50 uppercase truncate">
                           {project.category}
@@ -571,7 +565,10 @@ export default function AppDevelopment({
                       {/* Project tags */}
                       <div className="flex flex-wrap gap-1.5 sm:gap-2 mb-3 sm:mb-5">
                         {project.tags.map((tag) => (
-                          <span key={tag} className="px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-mono bg-black/[0.04] dark:bg-white/5 text-foreground/75 dark:text-foreground/70 border border-black/5 dark:border-white/5">
+                          <span
+                            key={tag}
+                            className="px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-mono bg-black/[0.04] dark:bg-white/5 text-foreground/75 dark:text-foreground/70 border border-black/5 dark:border-white/5"
+                          >
                             {tag}
                           </span>
                         ))}
@@ -585,7 +582,12 @@ export default function AppDevelopment({
                         </div>
 
                         {project.websiteUrl && (
-                          <a href={project.websiteUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 rounded-full bg-[#111111] px-3.5 sm:px-4 py-1.5 sm:py-2 text-xs font-semibold text-white shadow-sm transition-all hover:bg-[#333333] hover:scale-105 active:scale-95 dark:bg-[#f8f6f2] dark:text-[#111111] dark:hover:bg-white cursor-pointer">
+                          <a
+                            href={project.websiteUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1.5 rounded-full bg-[#111111] px-3.5 sm:px-4 py-1.5 sm:py-2 text-xs font-semibold text-white shadow-sm transition-all hover:bg-[#333333] hover:scale-105 active:scale-95 dark:bg-[#f8f6f2] dark:text-[#111111] dark:hover:bg-white cursor-pointer"
+                          >
                             <span>Visit</span>
                             <ArrowUpRight className="h-3.5 w-3.5" />
                           </a>
@@ -594,10 +596,13 @@ export default function AppDevelopment({
                     </div>
 
                     {/* Phone preview */}
-                    <div className={`order-1 relative flex h-[200px] sm:h-[240px] lg:h-auto items-center justify-center select-none ${isEven
-                      ? 'lg:col-span-5 lg:order-2'
-                      : 'lg:col-span-5 lg:order-1'
-                      }`}>
+                    <div
+                      className={`order-1 relative flex h-[200px] sm:h-[240px] lg:h-auto items-center justify-center select-none ${
+                        isEven
+                          ? 'lg:col-span-5 lg:order-2'
+                          : 'lg:col-span-5 lg:order-1'
+                      }`}
+                    >
                       <div className="scale-[0.78] sm:scale-95 lg:scale-100 origin-center flex items-center justify-center">
                         <StationaryPhoneFrame
                           project={project}
@@ -620,26 +625,63 @@ export default function AppDevelopment({
             {/* Outer border */}
             <div
               aria-hidden="true"
-              style={{ position: 'fixed', inset: 0, zIndex: 9998, boxSizing: 'border-box', border: '2px solid #d5d0cd', borderRadius: 'clamp(44px, 5vw, 88px)', boxShadow: '0 0 0 100vmax #ffffff, inset 0 10px 24px -6px rgba(130, 118, 112, 0.28), inset 0 3px 8px -2px rgba(255, 255, 255, 0.9), inset 0 -10px 22px -6px rgba(130, 118, 112, 0.2), inset 10px 0 22px -6px rgba(130, 118, 112, 0.16), inset -10px 0 22px -6px rgba(130, 118, 112, 0.16)', pointerEvents: 'none', }} />
+              style={{
+                position: 'fixed',
+                inset: 0,
+                zIndex: 9998,
+                boxSizing: 'border-box',
+                border: '2px solid #d5d0cd',
+                borderRadius: 'clamp(44px, 5vw, 88px)',
+                boxShadow:
+                  '0 0 0 100vmax #ffffff, inset 0 10px 24px -6px rgba(130, 118, 112, 0.28), inset 0 3px 8px -2px rgba(255, 255, 255, 0.9), inset 0 -10px 22px -6px rgba(130, 118, 112, 0.2), inset 10px 0 22px -6px rgba(130, 118, 112, 0.16), inset -10px 0 22px -6px rgba(130, 118, 112, 0.16)',
+                pointerEvents: 'none',
+              }}
+            />
 
             {/* Back button */}
-            <button type="button" onClick={handleBackClick} disabled={isLeaving} style={{ position: 'fixed', left: isMobileBackButton ? '16px' : '24px', top: isMobileBackButton ? '16px' : 'auto', bottom: isMobileBackButton ? 'auto' : '24px', zIndex: 9999, }} className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-pill text-xs font-mono font-medium hover:text-accent transition-colors cursor-pointer shadow-sm disabled:opacity-60">
+            <button
+              type="button"
+              onClick={handleBackClick}
+              disabled={isLeaving}
+              style={{
+                position: 'fixed',
+                left: isMobileBackButton ? '20px' : '24px',
+                top: isMobileBackButton
+                  ? 'max(20px, env(safe-area-inset-top, 20px))'
+                  : 'auto',
+                bottom: isMobileBackButton ? 'auto' : '24px',
+                zIndex: 10001,
+                pointerEvents: 'auto',
+              }}
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-full glass-pill text-xs font-mono font-medium hover:text-accent active:scale-95 transition-all cursor-pointer shadow-md disabled:opacity-60 touch-manipulation select-none"
+            >
               <ArrowLeft className="w-3.5 h-3.5" />
               <span>Back to the doors</span>
             </button>
 
             {/* Scroll to top */}
-            <button type="button"
+            <button
+              type="button"
               onClick={() =>
                 window.scrollTo({
                   top: 0,
                   behavior: 'smooth',
                 })
-              } style={{ position: 'fixed', right: '24px', bottom: '24px', zIndex: 9999, }}
-              className={`w-11 h-11 rounded-full bg-[#111111] text-white dark:bg-[#f8f6f2] dark:text-[#111111] shadow-2xl flex items-center justify-center transition-all duration-300 cursor-pointer hover:scale-110 active:scale-95 ${showScrollTop
-                ? 'opacity-100 translate-y-0'
-                : 'opacity-0 translate-y-4 pointer-events-none'
-                }`} title="Scroll to top" aria-label="Scroll to top">
+              }
+              style={{
+                position: 'fixed',
+                right: '24px',
+                bottom: '24px',
+                zIndex: 9999,
+              }}
+              className={`w-11 h-11 rounded-full bg-[#111111] text-white dark:bg-[#f8f6f2] dark:text-[#111111] shadow-2xl flex items-center justify-center transition-all duration-300 cursor-pointer hover:scale-110 active:scale-95 ${
+                showScrollTop
+                  ? 'opacity-100 translate-y-0'
+                  : 'opacity-0 translate-y-4 pointer-events-none'
+              }`}
+              title="Scroll to top"
+              aria-label="Scroll to top"
+            >
               <ArrowUp className="w-4 h-4" />
             </button>
           </>,
