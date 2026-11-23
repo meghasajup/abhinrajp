@@ -1018,6 +1018,7 @@ export default function App() {
         onClose={() => setIsMenuOpen(false)}
         onNavigate={navigateTo}
         onOpenContact={openContact}
+        currentRoute={currentRoute}
       />
 
       {/* HIRE MODAL */}
