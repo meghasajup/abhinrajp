@@ -93,6 +93,7 @@ const DoorsSection = forwardRef(function DoorsSection(
 
   const isTransitioningRef = useRef(false);
   const activeTimelineRef = useRef(null);
+  const mobileScrollTriggerRef = useRef(null);
 
   const [dinfoPos, setDinfoPos] = useState({
     left: 0,
@@ -120,7 +121,7 @@ const DoorsSection = forwardRef(function DoorsSection(
     return () => observer.disconnect();
   }, []);
 
-  // Mobile (< 1024px) ScrollTrigger horizontal slide + active door indicator sync
+  // Mobile (< 1024px): Pin section, slide 1 door at a time, complete full section before next section
   useEffect(() => {
     if (typeof window === 'undefined') return;
     gsap.registerPlugin(ScrollTrigger);
@@ -136,30 +137,30 @@ const DoorsSection = forwardRef(function DoorsSection(
         const stepCount = DOORS_DATA.length;
         const maxShiftPercent = ((stepCount - 1) / stepCount) * 100;
 
-        gsap.fromTo(
-          track,
-          { xPercent: 0 },
-          {
-            xPercent: -maxShiftPercent,
-            ease: 'none',
-            scrollTrigger: {
-              trigger: section,
-              start: 'top top',
-              end: () => `+=${(stepCount - 1) * 650 + 300}`,
-              pin: true,
-              pinSpacing: true,
-              scrub: 0.55,
-              anticipatePin: 1,
-              invalidateOnRefresh: true,
-              onUpdate: (self) => {
-                if (isTransitioningRef.current) return;
-                const rawIdx = Math.round(self.progress * (stepCount - 1));
-                const clampedIdx = Math.max(0, Math.min(stepCount - 1, rawIdx));
-                setMobileActiveIndex((prev) => (prev !== clampedIdx ? clampedIdx : prev));
-              },
+        gsap.set(track, { xPercent: 0 });
+
+        const tween = gsap.to(track, {
+          xPercent: -maxShiftPercent,
+          ease: 'none',
+          scrollTrigger: {
+            trigger: section,
+            start: 'top top',
+            end: () => `+=${(stepCount - 1) * 700 + 350}`,
+            pin: true,
+            pinSpacing: true,
+            scrub: 0.6,
+            anticipatePin: 1,
+            invalidateOnRefresh: true,
+            onUpdate: (self) => {
+              if (isTransitioningRef.current) return;
+              const rawIdx = Math.round(self.progress * (stepCount - 1));
+              const clampedIdx = Math.max(0, Math.min(stepCount - 1, rawIdx));
+              setMobileActiveIndex((prev) => (prev !== clampedIdx ? clampedIdx : prev));
             },
-          }
-        );
+          },
+        });
+
+        mobileScrollTriggerRef.current = tween.scrollTrigger;
       });
     }, containerRef);
 
@@ -169,8 +170,25 @@ const DoorsSection = forwardRef(function DoorsSection(
 
     return () => {
       clearTimeout(refreshTimer);
+      mobileScrollTriggerRef.current = null;
       ctx.revert();
     };
+  }, []);
+
+  // Dot click on mobile scrolls to that door's progress in the pinned ScrollTrigger
+  const handleMobileDotSelect = useCallback((targetIdx) => {
+    setMobileActiveIndex(targetIdx);
+
+    const st = mobileScrollTriggerRef.current;
+    if (!st || DOORS_DATA.length <= 1) return;
+
+    const progress = targetIdx / (DOORS_DATA.length - 1);
+    const targetScrollY = st.start + (st.end - st.start) * progress;
+
+    window.scrollTo({
+      top: targetScrollY,
+      behavior: 'smooth',
+    });
   }, []);
 
   // Calculate camera zoom metrics
@@ -568,8 +586,8 @@ const DoorsSection = forwardRef(function DoorsSection(
 
       {/* Main Camera Stage */}
       <div ref={cameraRef} className="doors-camera-stage">
-        <main className="relative z-10 w-full max-w-7xl mx-auto px-5 sm:px-6 md:px-8 pt-24 sm:pt-28 lg:pt-8 pb-0 flex flex-col flex-1 min-h-0 justify-between">
-          {/* Heading + Mobile Subheading & Dots */}
+        <main className="relative z-10 w-full max-w-7xl mx-auto px-5 sm:px-6 md:px-8 pt-20 sm:pt-24 lg:pt-8 pb-0 flex flex-col flex-1 min-h-0 justify-between">
+          {/* Heading + Mobile Active Door Info & Dots */}
           <div className="w-full max-w-6xl mx-auto">
             <h1
               ref={headingRef}
@@ -588,17 +606,31 @@ const DoorsSection = forwardRef(function DoorsSection(
               ))}
             </h1>
 
-            {/* MOBILE (< 1024px) Subheading + Dots Indicator */}
-            <div className="lg:hidden mt-5 mb-2 text-left">
+            {/* MOBILE (< 1024px) Active Door Details + Dots */}
+            <div className="lg:hidden mt-4 mb-2 text-left">
               <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-[#171717] dark:text-white leading-snug">
                 {currentMobileDoor.title}
               </h2>
-              <p className="mt-1 text-[10px] sm:text-xs font-mono tracking-[0.14em] uppercase text-[#71717a] dark:text-[#a1a1aa]">
+              <p className="mt-0.5 text-[10px] sm:text-xs font-mono tracking-[0.14em] uppercase text-[#71717a] dark:text-[#a1a1aa]">
                 {currentMobileDoor.subtitle}
               </p>
 
+              <ul className="mt-3 space-y-1.5 text-xs sm:text-sm text-[#3f3f46] dark:text-[#d4d4d8]">
+                {currentMobileDoor.features.map((feature, fIdx) => (
+                  <li key={fIdx} className="flex items-center gap-2">
+                    <span
+                      className="inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-[#171717]/10 dark:bg-white/15 text-[10px] font-bold text-[#171717] dark:text-white"
+                      aria-hidden="true"
+                    >
+                      ✓
+                    </span>
+                    <span>{feature}</span>
+                  </li>
+                ))}
+              </ul>
+
               {/* Dots */}
-              <div className="mt-4 flex items-center gap-2" role="tablist" aria-label="Service doors">
+              <div className="mt-3.5 flex items-center gap-2" role="tablist" aria-label="Service doors">
                 {DOORS_DATA.map((d, idx) => {
                   const isCurrent = mobileActiveIndex === idx;
                   return (
@@ -608,7 +640,7 @@ const DoorsSection = forwardRef(function DoorsSection(
                       role="tab"
                       aria-selected={isCurrent}
                       aria-label={`Select ${d.title}`}
-                      onClick={() => setMobileActiveIndex(idx)}
+                      onClick={() => handleMobileDotSelect(idx)}
                       className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${
                         isCurrent
                           ? 'w-6 bg-[#171717] dark:bg-white'
@@ -621,11 +653,11 @@ const DoorsSection = forwardRef(function DoorsSection(
             </div>
           </div>
 
-          {/* MOBILE (< 1024px) Single-Door-At-A-Time ScrollTrigger Track */}
-          <div className="lg:hidden relative w-full flex-1 min-h-0 flex items-end overflow-hidden pt-3 pb-0">
+          {/* MOBILE (< 1024px) Single-Door-At-A-Time Pinned ScrollTrigger Track */}
+          <div className="lg:hidden relative w-full flex-1 min-h-0 flex items-end overflow-hidden pt-2 pb-0">
             <div
               ref={mobileTrackRef}
-              className="flex items-end w-full will-change-transform"
+              className="flex items-end will-change-transform"
               style={{ width: `${DOORS_DATA.length * 100}%` }}
             >
               {DOORS_DATA.map((door, idx) => {
@@ -643,7 +675,7 @@ const DoorsSection = forwardRef(function DoorsSection(
                       ref={(el) => {
                         mobileUnitsRef.current[idx] = el;
                       }}
-                      className={`unit mx-auto w-full max-w-[260px] sm:max-w-[290px] ${
+                      className={`unit mx-auto w-full max-w-[240px] sm:max-w-[275px] ${
                         isSelected ? 'on' : ''
                       } ${isPress ? 'press' : ''}`}
                       style={{
