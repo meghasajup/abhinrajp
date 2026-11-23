@@ -929,11 +929,12 @@ body {
   justify-content: flex-start;
   align-items: center;
   width: 100%;
-  margin: 0 0 clamp(24px, 4vw, 42px);
-  font-size: clamp(32px, 5vw, 56px);
+  padding-right: 12px;
+  margin: 0 0 14px;
+  font-size: clamp(26px, 6.8vw, 38px);
   font-weight: 900;
   line-height: 1.15;
-  letter-spacing: -0.045em;
+  letter-spacing: -0.04em;
   text-align: left;
   color: var(--foreground);
   overflow: hidden;
@@ -944,6 +945,10 @@ body {
   .doors-heading {
     justify-content: center;
     text-align: center;
+    padding-right: 0;
+    margin: 0 0 clamp(24px, 4vw, 42px);
+    font-size: clamp(32px, 5vw, 56px);
+    letter-spacing: -0.045em;
   }
 }
 
@@ -1001,17 +1006,23 @@ body {
 /* =========================================
    RESPONSIVE
 ========================================= */
-/* Mobile / Tablet (< 1024px) Pinned Horizontal Door Track */
+/* Mobile / Tablet (< 1024px): Explicit width + aspect-ratio so full door renders cleanly */
 @media (max-width: 1023px) {
   .unit.mobile-door-unit {
-    flex: 0 0 clamp(210px, 72vw, 280px);
-    width: clamp(210px, 72vw, 280px);
+    flex: 0 0 clamp(150px, 42vw, 190px);
+    width: clamp(150px, 42vw, 190px);
+  }
+
+  .unit.mobile-door-unit .doorway {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1 / 2.05;
   }
 }
 
 /* Large tablet */
 @media (max-width: 1100px) {
-  .unit {
+  .unit:not(.mobile-door-unit) {
     flex-basis: clamp(165px, 19vw, 205px);
     width: clamp(165px, 19vw, 205px);
   }
@@ -1036,11 +1047,6 @@ body {
     top: 18px;
     height: 6px;
   }
-
-  .doors-heading {
-    font-size: clamp(30px, 6vw, 44px);
-    margin-bottom: 20px;
-  }
 }
 
 /* Mobile */
@@ -1048,10 +1054,6 @@ body {
   .unit:not(.mobile-door-unit) {
     flex: 0 0 clamp(125px, 38vw, 180px);
     width: clamp(125px, 38vw, 180px);
-  }
-
-  .doorway {
-    aspect-ratio: 1 / 2.15;
   }
 }
 
@@ -1075,12 +1077,6 @@ body {
   .baseboard-lower {
     top: 17px;
     height: 5px;
-  }
-
-  .doors-heading {
-    font-size: clamp(27px, 7.5vw, 36px);
-    line-height: 1.2;
-    margin-bottom: 16px;
   }
 }
 
