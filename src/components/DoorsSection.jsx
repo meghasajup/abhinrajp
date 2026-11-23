@@ -80,6 +80,7 @@ const DoorsSection = forwardRef(function DoorsSection(
   const containerRef = useRef(null);
   const cameraRef = useRef(null);
   const headingRef = useRef(null);
+  const mobileViewportRef = useRef(null);
   const mobileTrackRef = useRef(null);
   const wallRef = useRef(null);
   const unitsRef = useRef([]);
@@ -121,7 +122,7 @@ const DoorsSection = forwardRef(function DoorsSection(
     return () => observer.disconnect();
   }, []);
 
-  // Mobile (< 1024px): Pin section, slide 1 door at a time, complete full section before next section
+  // Mobile (< 1024px): Pin section, slide with gap between doors, complete full section before next section
   useEffect(() => {
     if (typeof window === 'undefined') return;
     gsap.registerPlugin(ScrollTrigger);
@@ -131,21 +132,25 @@ const DoorsSection = forwardRef(function DoorsSection(
 
       mm.add('(max-width: 1023px)', () => {
         const track = mobileTrackRef.current;
+        const viewport = mobileViewportRef.current;
         const section = containerRef.current;
-        if (!track || !section) return;
+        if (!track || !viewport || !section) return;
 
-        const stepCount = DOORS_DATA.length;
-        const maxShiftPercent = ((stepCount - 1) / stepCount) * 100;
+        const getMaxShift = () => {
+          const totalWidth = track.scrollWidth;
+          const visibleWidth = viewport.clientWidth;
+          return Math.max(0, totalWidth - visibleWidth);
+        };
 
-        gsap.set(track, { xPercent: 0 });
+        gsap.set(track, { x: 0 });
 
         const tween = gsap.to(track, {
-          xPercent: -maxShiftPercent,
+          x: () => -getMaxShift(),
           ease: 'none',
           scrollTrigger: {
             trigger: section,
             start: 'top top',
-            end: () => `+=${(stepCount - 1) * 700 + 350}`,
+            end: () => `+=${Math.max(900, getMaxShift() * 1.45 + 350)}`,
             pin: true,
             pinSpacing: true,
             scrub: 0.6,
@@ -153,6 +158,7 @@ const DoorsSection = forwardRef(function DoorsSection(
             invalidateOnRefresh: true,
             onUpdate: (self) => {
               if (isTransitioningRef.current) return;
+              const stepCount = DOORS_DATA.length;
               const rawIdx = Math.round(self.progress * (stepCount - 1));
               const clampedIdx = Math.max(0, Math.min(stepCount - 1, rawIdx));
               setMobileActiveIndex((prev) => (prev !== clampedIdx ? clampedIdx : prev));
@@ -607,7 +613,7 @@ const DoorsSection = forwardRef(function DoorsSection(
             </h1>
 
             {/* MOBILE (< 1024px) Active Door Details + Dots */}
-            <div className="lg:hidden mt-4 mb-2 text-left">
+            <div className="lg:hidden mt-3 mb-1 text-left">
               <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-[#171717] dark:text-white leading-snug">
                 {currentMobileDoor.title}
               </h2>
@@ -615,7 +621,7 @@ const DoorsSection = forwardRef(function DoorsSection(
                 {currentMobileDoor.subtitle}
               </p>
 
-              <ul className="mt-3 space-y-1.5 text-xs sm:text-sm text-[#3f3f46] dark:text-[#d4d4d8]">
+              <ul className="mt-2.5 space-y-1 text-xs sm:text-sm text-[#3f3f46] dark:text-[#d4d4d8]">
                 {currentMobileDoor.features.map((feature, fIdx) => (
                   <li key={fIdx} className="flex items-center gap-2">
                     <span
@@ -630,7 +636,7 @@ const DoorsSection = forwardRef(function DoorsSection(
               </ul>
 
               {/* Dots */}
-              <div className="mt-3.5 flex items-center gap-2" role="tablist" aria-label="Service doors">
+              <div className="mt-3 flex items-center gap-2" role="tablist" aria-label="Service doors">
                 {DOORS_DATA.map((d, idx) => {
                   const isCurrent = mobileActiveIndex === idx;
                   return (
@@ -653,12 +659,14 @@ const DoorsSection = forwardRef(function DoorsSection(
             </div>
           </div>
 
-          {/* MOBILE (< 1024px) Single-Door-At-A-Time Pinned ScrollTrigger Track */}
-          <div className="lg:hidden relative w-full flex-1 min-h-0 flex items-end overflow-hidden pt-2 pb-0">
+          {/* MOBILE (< 1024px) Pinned Horizontal Track With Spacing Between Doors */}
+          <div
+            ref={mobileViewportRef}
+            className="lg:hidden relative w-full flex-1 min-h-0 flex items-end overflow-hidden pt-2 pb-0"
+          >
             <div
               ref={mobileTrackRef}
-              className="flex items-end will-change-transform"
-              style={{ width: `${DOORS_DATA.length * 100}%` }}
+              className="inline-flex items-end gap-6 sm:gap-8 pr-6 will-change-transform"
             >
               {DOORS_DATA.map((door, idx) => {
                 const isSelected = mobileActiveIndex === idx;
@@ -668,60 +676,55 @@ const DoorsSection = forwardRef(function DoorsSection(
                 return (
                   <div
                     key={door.id}
-                    className="shrink-0 flex items-end justify-center overflow-hidden px-6"
-                    style={{ width: `${100 / DOORS_DATA.length}%` }}
+                    ref={(el) => {
+                      mobileUnitsRef.current[idx] = el;
+                    }}
+                    className={`unit mobile-door-unit shrink-0 ${
+                      isSelected ? 'on' : ''
+                    } ${isPress ? 'press' : ''}`}
+                    style={{
+                      '--door': door.color,
+                      '--door-dk': door.colorDark,
+                    }}
                   >
-                    <div
-                      ref={(el) => {
-                        mobileUnitsRef.current[idx] = el;
-                      }}
-                      className={`unit mx-auto w-full max-w-[240px] sm:max-w-[275px] ${
-                        isSelected ? 'on' : ''
-                      } ${isPress ? 'press' : ''}`}
-                      style={{
-                        '--door': door.color,
-                        '--door-dk': door.colorDark,
-                      }}
+                    <button
+                      type="button"
+                      tabIndex={0}
+                      aria-label={`Open the ${door.title} door`}
+                      aria-expanded={isOpened}
+                      className="doorway"
+                      onClick={(e) => handleDoorClick(idx, e)}
+                      onKeyDown={(e) => handleKeyDown(e, idx)}
                     >
-                      <button
-                        type="button"
-                        tabIndex={0}
-                        aria-label={`Open the ${door.title} door`}
-                        aria-expanded={isOpened}
-                        className="doorway"
-                        onClick={(e) => handleDoorClick(idx, e)}
-                        onKeyDown={(e) => handleKeyDown(e, idx)}
-                      >
-                        <span className="casing" />
-                        <span className="opening">
-                          <span className="room" />
-                          <span
-                            ref={(el) => {
-                              mobileDoorPanelRefs.current[idx] = el;
-                            }}
-                            className="door"
-                          >
-                            <span className="door__flute" />
-                            <span className="plate">
-                              <span>{door.plateTop}</span>
-                              <br />
-                              <span>{door.plateBottom}</span>
-                            </span>
-                            <span className="handle">
-                              <span
-                                ref={(el) => {
-                                  mobileLeverRefs.current[idx] = el;
-                                }}
-                                className="handle__lever"
-                              />
-                              <span className="handle__lock" />
-                            </span>
+                      <span className="casing" />
+                      <span className="opening">
+                        <span className="room" />
+                        <span
+                          ref={(el) => {
+                            mobileDoorPanelRefs.current[idx] = el;
+                          }}
+                          className="door"
+                        >
+                          <span className="door__flute" />
+                          <span className="plate">
+                            <span>{door.plateTop}</span>
+                            <br />
+                            <span>{door.plateBottom}</span>
                           </span>
-                          <span className="click-to-enter">Click to enter</span>
-                          <span className="sill" />
+                          <span className="handle">
+                            <span
+                              ref={(el) => {
+                                mobileLeverRefs.current[idx] = el;
+                              }}
+                              className="handle__lever"
+                            />
+                            <span className="handle__lock" />
+                          </span>
                         </span>
-                      </button>
-                    </div>
+                        <span className="click-to-enter">Click to enter</span>
+                        <span className="sill" />
+                      </span>
+                    </button>
                   </div>
                 );
               })}

@@ -926,7 +926,7 @@ body {
 .doors-heading {
   display: flex;
   flex-wrap: wrap;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: center;
   width: 100%;
   margin: 0 0 clamp(24px, 4vw, 42px);
@@ -934,10 +934,17 @@ body {
   font-weight: 900;
   line-height: 1.15;
   letter-spacing: -0.045em;
-  text-align: center;
+  text-align: left;
   color: var(--foreground);
   overflow: hidden;
   will-change: opacity;
+}
+
+@media (min-width: 1024px) {
+  .doors-heading {
+    justify-content: center;
+    text-align: center;
+  }
 }
 
 .doors-heading-letter {
@@ -994,6 +1001,14 @@ body {
 /* =========================================
    RESPONSIVE
 ========================================= */
+/* Mobile / Tablet (< 1024px) Pinned Horizontal Door Track */
+@media (max-width: 1023px) {
+  .unit.mobile-door-unit {
+    flex: 0 0 clamp(210px, 72vw, 280px);
+    width: clamp(210px, 72vw, 280px);
+  }
+}
+
 /* Large tablet */
 @media (max-width: 1100px) {
   .unit {
@@ -1024,13 +1039,13 @@ body {
 
   .doors-heading {
     font-size: clamp(30px, 6vw, 44px);
-    margin-bottom: 28px;
+    margin-bottom: 20px;
   }
 }
 
 /* Mobile */
 @media (max-width: 700px) {
-  .unit {
+  .unit:not(.mobile-door-unit) {
     flex: 0 0 clamp(125px, 38vw, 180px);
     width: clamp(125px, 38vw, 180px);
   }
@@ -1065,7 +1080,7 @@ body {
   .doors-heading {
     font-size: clamp(27px, 7.5vw, 36px);
     line-height: 1.2;
-    margin-bottom: 24px;
+    margin-bottom: 16px;
   }
 }
 
