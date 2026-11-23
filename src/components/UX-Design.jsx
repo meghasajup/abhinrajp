@@ -1,6 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { ArrowLeft, ArrowUp, ArrowUpRight } from 'lucide-react';
+import { ArrowLeft, ArrowUp } from 'lucide-react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
@@ -9,6 +9,9 @@ import namodeva from '/images/ui-ux/namodeva.png';
 import anyskill from '/images/ui-ux/anyskill.png';
 import taskpro from '/images/ui-ux/taskpro.png';
 import ptportal from '/images/ui-ux/pt-portal.png';
+import lawishFilms from '/images/ui-ux/lawish.png';
+import soukariyamEvents from '/images/ui-ux/soukariyam.png';
+import solmare from '/images/ui-ux/solmare.png';
 
 if (typeof window !== 'undefined') {
   gsap.registerPlugin(ScrollTrigger);
@@ -25,7 +28,6 @@ const PROJECTS = [
       'An AI-powered learning platform built around study tools and exam preparation. The app brings together mock exams, PDF and QR-based analytics, payment flows, deep links and push notifications in one mobile experience.',
     tags: ['Flutter', 'Provider · MVVM', 'AI learning', 'Mock exams'],
     badge: 'Live on Google Play',
-    websiteUrl: 'https://www.thelearnyn.com/',
     phoneUrl: theLearnyn,
   },
   {
@@ -38,7 +40,6 @@ const PROJECTS = [
       'A cultural mobile platform combining content and interactive experiences. The app includes in-app gaming, video experiences, Firebase authentication and push notifications, with its app architecture built using Flutter and GetX.',
     tags: ['Flutter', 'GetX · MVC', 'Firebase', 'Interactive experiences'],
     badge: 'Live on Google Play',
-    websiteUrl: 'https://namodeva.com/',
     phoneUrl: namodeva,
   },
   {
@@ -51,7 +52,6 @@ const PROJECTS = [
       'A mobile learning experience focused on making skill development accessible through a clear, easy-to-use app interface. The project details and visual assets currently reuse the AnySkill information available in the existing App Development project data.',
     tags: ['Mobile UI', 'Learning experience', 'App interface'],
     badge: 'Project details to be refined',
-    websiteUrl: 'https://anyskill.com/',
     phoneUrl: anyskill,
   },
   {
@@ -64,7 +64,6 @@ const PROJECTS = [
       'A mobile service marketplace connecting customers with service providers. The app brings together service discovery, messaging, maps and payments, supported by Firebase integrations and a maintainable architecture.',
     tags: ['Clean Architecture', 'BLoC · GetX · Provider', 'Razorpay', 'Maps & messaging'],
     badge: 'Amazon Appstore · GitHub',
-    websiteUrl: 'https://www.amazon.com/abhinraj-Taskpro/dp/B0DFWZY8GT',
     phoneUrl: taskpro,
   },
   {
@@ -77,8 +76,43 @@ const PROJECTS = [
       'A fitness and coaching app designed to help users follow their progress and stay consistent. The experience includes progress tracking, reminders and locally stored app data, built around an MVVM approach.',
     tags: ['MVVM', 'Hive', 'Progress tracking', 'Reminders'],
     badge: 'Amazon Appstore · GitHub',
-    websiteUrl: 'https://www.amazon.com/abhinraj-PT-Portal/dp/B0CW1B2Q8M',
     phoneUrl: ptportal,
+  },
+  {
+    id: 'lawish-films',
+    num: '06',
+    category: 'WEBSITE',
+    title: 'Lawish Films',
+    subtitle: 'Photography portfolio · Website UI/UX',
+    description:
+      'A photography portfolio website designed to showcase a photographer’s work across weddings, parties, maternity shoots, and other sessions with regular updates. Currently in progress and not yet live.',
+    tags: ['Website UI/UX', 'Photography portfolio', 'Weddings & events', 'Maternity shoots'],
+    badge: 'In progress · Not yet live',
+    phoneUrl: lawishFilms,
+  },
+  {
+    id: 'soukariyam-events',
+    num: '07',
+    category: 'WEBSITE',
+    title: 'Soukariyam Events',
+    subtitle: 'Catering and event management · Website UI/UX',
+    description:
+      'A website UI/UX design for catering and event management services, structured to clearly present available offerings, service details, and pricing. Currently in progress and not yet live.',
+    tags: ['Website UI/UX', 'Catering & events', 'Service details', 'Pricing'],
+    badge: 'In progress · Not yet live',
+    phoneUrl: soukariyamEvents,
+  },
+  {
+    id: 'solmare',
+    num: '08',
+    category: 'WEBSITE',
+    title: 'Solmare',
+    subtitle: 'E-commerce for jewellery · Website UI/UX',
+    description:
+      'An e-commerce website UI/UX concept focused on silver jewellery, crafted to present collections and shopping flows cleanly. Currently in progress and not yet live.',
+    tags: ['Website UI/UX', 'E-commerce', 'Silver jewellery', 'Shopping flow'],
+    badge: 'In progress · Not yet live',
+    phoneUrl: solmare,
   },
 ];
 
@@ -364,9 +398,9 @@ export default function UiUxDesign({
             </h1>
 
             <p className="text-lg sm:text-xl text-foreground/75 leading-relaxed font-normal">
-              Thoughtful mobile experiences designed alongside development:
-              from clear user flows and accessible interfaces to the details
-              that make each app feel intuitive and consistent.
+              Thoughtful mobile and web experiences designed with clear user
+              flows, accessible interfaces, and consistent details that make
+              every product feel intuitive.
             </p>
           </div>
 
@@ -441,19 +475,6 @@ export default function UiUxDesign({
                           <span className="w-2 h-2 rounded-full bg-foreground/35 dark:bg-foreground/45 inline-block flex-shrink-0" />
                           <span>{project.badge}</span>
                         </div>
-
-                        <a
-                          href={project.websiteUrl || '#'}
-                          target={project.websiteUrl ? '_blank' : undefined}
-                          rel={project.websiteUrl ? 'noopener noreferrer' : undefined}
-                          onClick={(e) => {
-                            if (!project.websiteUrl) e.preventDefault();
-                          }}
-                          className="inline-flex items-center gap-1.5 rounded-full bg-[#111111] px-4 py-2 text-xs font-semibold text-white shadow-sm transition-all hover:bg-[#333333] hover:scale-105 active:scale-95 dark:bg-[#f8f6f2] dark:text-[#111111] dark:hover:bg-white cursor-pointer"
-                        >
-                          <span>Visit</span>
-                          <ArrowUpRight className="h-3.5 w-3.5" />
-                        </a>
                       </div>
                     </div>
 
@@ -467,7 +488,7 @@ export default function UiUxDesign({
                       <div className="relative h-full w-auto max-w-full lg:h-auto lg:w-[400px] xl:w-[440px] drop-shadow-[0_20px_35px_rgba(0,0,0,0.18)] dark:drop-shadow-[0_25px_40px_rgba(0,0,0,0.65)]">
                         <img
                           src={project.phoneUrl}
-                          alt={`${project.title} app preview`}
+                          alt={`${project.title} preview`}
                           className="h-full w-auto max-w-full object-contain select-none pointer-events-none lg:h-auto lg:w-full"
                           loading={idx === 0 ? 'eager' : 'lazy'}
                           decoding="async"
