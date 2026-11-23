@@ -130,7 +130,6 @@ export default function AppDeployment({
     return () => mediaQuery.removeEventListener('change', updatePosition);
   }, []);
 
-  // Always start this page from the top
   useEffect(() => {
     const root = document.documentElement;
     const previousBehavior = root.style.scrollBehavior;
@@ -147,7 +146,6 @@ export default function AppDeployment({
     };
   }, []);
 
-  // Entrance through the door portal
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return undefined;
@@ -180,6 +178,16 @@ export default function AppDeployment({
     return () => entranceTween.kill();
   }, []);
 
+  const navigateToDoors = () => {
+    onNavigate('/#doors', {
+      hash: '#doors',
+      doorIndex: 2,
+      isBack: true,
+      preserveScroll: true,
+      skipDoorCenter: true,
+    });
+  };
+
   const handleBackClick = (event) => {
     event?.preventDefault();
     if (isLeaving) return;
@@ -190,7 +198,7 @@ export default function AppDeployment({
     ).matches;
 
     if (prefersReducedMotion || !containerRef.current) {
-      onNavigate('/', { doorIndex: 2, isBack: true });
+      navigateToDoors();
       return;
     }
 
@@ -204,9 +212,7 @@ export default function AppDeployment({
       borderRadius: '48px',
       duration: 0.38,
       ease: 'power2.in',
-      onComplete: () => {
-        onNavigate('/', { doorIndex: 2, isBack: true });
-      },
+      onComplete: navigateToDoors,
     });
   };
 
@@ -217,7 +223,6 @@ export default function AppDeployment({
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Reliable stacked-card animation
   useEffect(() => {
     const stage = cardsContainerRef.current;
     if (!stage) return undefined;
@@ -343,26 +348,23 @@ export default function AppDeployment({
 
   return (
     <>
-      {/* Main surface */}
       <div
         ref={containerRef}
-        className="service-page-wrapper bg-[var(--background)] text-[var(--foreground)] min-h-screen pt-24 sm:pt-28 pb-12 px-4 sm:px-8 md:px-12 w-full max-w-[84rem] mx-auto relative overflow-visible flex flex-col justify-between rounded-[28px] sm:rounded-[36px] md:rounded-[40px]"
+        className="service-page-wrapper bg-[var(--background)] text-[var(--foreground)] min-h-screen pt-20 sm:pt-28 pb-12 px-4 sm:px-8 md:px-12 w-full max-w-[84rem] mx-auto relative overflow-visible flex flex-col justify-between rounded-[28px] sm:rounded-[36px] md:rounded-[40px]"
       >
         <div className="w-full">
-          {/* Page Header */}
-          <div className="max-w-3xl mb-10">
+          <div className="max-w-3xl mb-8 sm:mb-10">
             <h1 className="text-4xl sm:text-6xl md:text-7xl font-extrabold tracking-tight text-foreground mb-4">
               App Development
             </h1>
-            <p className="text-lg sm:text-xl text-foreground/75 leading-relaxed font-normal">
+            <p className="text-base sm:text-xl text-foreground/75 leading-relaxed font-normal">
               Cross-platform mobile apps, designed and built end to end: from the first screen and smooth interactions to the native details that make an app feel right at home on both iOS and Android.
             </p>
           </div>
 
-          {/* Stacked Cards Parent Stage */}
           <div
             ref={cardsContainerRef}
-            className="relative isolate w-full h-[580px] sm:h-[620px] lg:h-[640px] mb-8 overflow-visible"
+            className="relative isolate w-full h-[640px] sm:h-[660px] lg:h-[640px] mb-8 overflow-visible"
           >
             {PROJECTS.map((project, idx) => {
               const zIndex = 10 * (idx + 1);
@@ -373,28 +375,28 @@ export default function AppDeployment({
                     cardRefs.current[idx] = el;
                   }}
                   style={{ zIndex }}
-                  className="absolute top-0 inset-x-0 w-full h-full rounded-[32px] sm:rounded-[36px] bg-white dark:bg-[#1e1b1b] border border-black/[0.06] dark:border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.06)] dark:shadow-[0_25px_50px_rgba(0,0,0,0.5)] p-6 sm:p-10 lg:p-12 overflow-hidden flex flex-col justify-between select-none"
+                  className="absolute top-0 inset-x-0 w-full h-full rounded-[28px] sm:rounded-[36px] bg-white dark:bg-[#1e1b1b] border border-black/[0.06] dark:border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.06)] dark:shadow-[0_25px_50px_rgba(0,0,0,0.5)] p-4 sm:p-10 lg:p-12 overflow-hidden flex flex-col justify-between select-none"
                 >
-                  {/* card recedes into stack */}
                   <div
                     ref={(el) => {
                       overlayRefs.current[idx] = el;
                     }}
-                    className="absolute inset-0 rounded-[32px] sm:rounded-[36px] bg-black pointer-events-none opacity-0 z-20"
+                    className="absolute inset-0 rounded-[28px] sm:rounded-[36px] bg-black pointer-events-none opacity-0 z-20"
                   />
-                  <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 items-center gap-6 lg:gap-10 h-full">
-                    {/* Text Content Column */}
+
+                  <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 items-center gap-3 sm:gap-6 lg:gap-10 h-full">
+                    {/* Text Content Column (below mockup on mobile, unchanged on lg+) */}
                     <div
-                      className={`flex flex-col justify-between h-full ${
+                      className={`order-2 flex flex-col justify-between h-full min-w-0 ${
                         idx % 2 === 0
                           ? 'lg:col-span-7 lg:order-1'
                           : 'lg:col-span-7 lg:order-2'
                       }`}
                     >
                       <div>
-                        <div className="flex items-center justify-between gap-3 mb-4">
-                          <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl overflow-hidden shadow-sm flex-shrink-0 bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/10">
+                        <div className="flex items-center justify-between gap-2 mb-2 sm:mb-4">
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl overflow-hidden shadow-sm flex-shrink-0 bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/10">
                               <img
                                 src={project.iconUrl}
                                 onError={(e) => {
@@ -408,29 +410,29 @@ export default function AppDeployment({
                                 loading="eager"
                               />
                             </div>
-                            <span className="text-xs font-mono font-semibold tracking-wider text-foreground/60 dark:text-foreground/50 uppercase">
+                            <span className="text-[10px] sm:text-xs font-mono font-semibold tracking-wider text-foreground/60 dark:text-foreground/50 uppercase truncate">
                               {project.category}
                             </span>
                           </div>
-                          <span className="text-xs font-mono text-muted">
+                          <span className="text-[10px] sm:text-xs font-mono text-muted flex-shrink-0">
                             {project.num}
                           </span>
                         </div>
 
-                        <h2 className="text-2xl sm:text-4xl lg:text-5xl font-extrabold text-foreground tracking-tight mb-2">
+                        <h2 className="text-xl sm:text-4xl lg:text-5xl font-extrabold text-foreground tracking-tight mb-1 sm:mb-2">
                           {project.title}
                         </h2>
-                        <p className="text-xs sm:text-sm font-mono text-accent font-medium mb-4 sm:mb-6">
+                        <p className="text-[11px] sm:text-sm font-mono text-accent font-medium mb-2 sm:mb-6">
                           {project.subtitle}
                         </p>
-                        <p className="text-sm sm:text-base text-foreground/80 dark:text-foreground/75 leading-relaxed max-w-xl mb-6">
+                        <p className="text-xs sm:text-base text-foreground/80 dark:text-foreground/75 leading-relaxed max-w-xl mb-3 sm:mb-6 line-clamp-4 sm:line-clamp-none">
                           {project.description}
                         </p>
-                        <div className="flex flex-wrap gap-2 mb-6">
+                        <div className="flex flex-wrap gap-1.5 sm:gap-2 mb-2 sm:mb-6">
                           {project.tags.map((tag) => (
                             <span
                               key={tag}
-                              className="px-3.5 py-1.5 rounded-full text-xs font-mono bg-black/[0.04] dark:bg-white/5 text-foreground/75 dark:text-foreground/70 border border-black/5 dark:border-white/5"
+                              className="px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-mono bg-black/[0.04] dark:bg-white/5 text-foreground/75 dark:text-foreground/70 border border-black/5 dark:border-white/5"
                             >
                               {tag}
                             </span>
@@ -438,8 +440,8 @@ export default function AppDeployment({
                         </div>
                       </div>
 
-                      <div className="flex flex-wrap items-center gap-3 pt-2">
-                        <div className="flex items-center gap-2 text-xs font-mono text-muted">
+                      <div className="flex flex-wrap items-center gap-2 sm:gap-3 pt-1 sm:pt-2">
+                        <div className="flex items-center gap-2 text-[11px] sm:text-xs font-mono text-muted">
                           <span className="w-2 h-2 rounded-full bg-foreground/35 dark:bg-foreground/45 inline-block flex-shrink-0" />
                           <span>{project.badge}</span>
                         </div>
@@ -451,7 +453,7 @@ export default function AppDeployment({
                           onClick={(e) => {
                             if (!project.websiteUrl) e.preventDefault();
                           }}
-                          className="inline-flex items-center gap-1.5 rounded-full bg-[#111111] px-4 py-2 text-xs font-semibold text-white shadow-sm transition-all hover:bg-[#333333] hover:scale-105 active:scale-95 dark:bg-[#f8f6f2] dark:text-[#111111] dark:hover:bg-white cursor-pointer"
+                          className="inline-flex items-center gap-1.5 rounded-full bg-[#111111] px-3.5 sm:px-4 py-1.5 sm:py-2 text-xs font-semibold text-white shadow-sm transition-all hover:bg-[#333333] hover:scale-105 active:scale-95 dark:bg-[#f8f6f2] dark:text-[#111111] dark:hover:bg-white cursor-pointer"
                         >
                           <span>Visit</span>
                           <ArrowUpRight className="h-3.5 w-3.5" />
@@ -459,15 +461,15 @@ export default function AppDeployment({
                       </div>
                     </div>
 
-                    {/* Phone Mockup Column */}
+                    {/* Phone Mockup Column (on top on mobile, unchanged on lg+) */}
                     <div
-                      className={`relative flex items-center justify-center select-none ${
+                      className={`order-1 relative flex h-[175px] sm:h-[220px] lg:h-auto items-center justify-center select-none ${
                         idx % 2 === 0
                           ? 'lg:col-span-5 lg:order-2'
                           : 'lg:col-span-5 lg:order-1'
                       }`}
                     >
-                      <div className="relative w-[220px] sm:w-[250px] lg:w-[270px] drop-shadow-[0_20px_35px_rgba(0,0,0,0.18)] dark:drop-shadow-[0_25px_40px_rgba(0,0,0,0.65)]">
+                      <div className="relative h-full w-auto max-w-full lg:h-auto lg:w-[270px] drop-shadow-[0_20px_35px_rgba(0,0,0,0.18)] dark:drop-shadow-[0_25px_40px_rgba(0,0,0,0.65)] flex items-center justify-center">
                         <img
                           src={project.phoneUrl}
                           onError={(e) => {
@@ -477,7 +479,7 @@ export default function AppDeployment({
                             }
                           }}
                           alt={`${project.title} preview`}
-                          className="w-full h-auto object-contain select-none pointer-events-none"
+                          className="h-full w-auto max-w-full object-contain select-none pointer-events-none lg:h-auto lg:w-full"
                           loading="eager"
                           onLoad={() => ScrollTrigger.refresh()}
                         />
@@ -494,7 +496,6 @@ export default function AppDeployment({
       {typeof document !== 'undefined' &&
         createPortal(
           <>
-            {/* Outer surround */}
             <div
               aria-hidden="true"
               style={{

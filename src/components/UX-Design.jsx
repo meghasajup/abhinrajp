@@ -25,7 +25,7 @@ const PROJECTS = [
       'An AI-powered learning platform built around study tools and exam preparation. The app brings together mock exams, PDF and QR-based analytics, payment flows, deep links and push notifications in one mobile experience.',
     tags: ['Flutter', 'Provider · MVVM', 'AI learning', 'Mock exams'],
     badge: 'Live on Google Play',
-    websiteUrl: '', // Add the official project URL here.
+    websiteUrl: '',
     phoneUrl: theLearnyn,
   },
   {
@@ -38,7 +38,7 @@ const PROJECTS = [
       'A cultural mobile platform combining content and interactive experiences. The app includes in-app gaming, video experiences, Firebase authentication and push notifications, with its app architecture built using Flutter and GetX.',
     tags: ['Flutter', 'GetX · MVC', 'Firebase', 'Interactive experiences'],
     badge: 'Live on Google Play',
-    websiteUrl: '', // Add the official project URL here.
+    websiteUrl: '',
     phoneUrl: namodeva,
   },
   {
@@ -51,7 +51,7 @@ const PROJECTS = [
       'A mobile learning experience focused on making skill development accessible through a clear, easy-to-use app interface. The project details and visual assets currently reuse the AnySkill information available in the existing App Development project data.',
     tags: ['Mobile UI', 'Learning experience', 'App interface'],
     badge: 'Project details to be refined',
-    websiteUrl: '', // Add the official project URL here.
+    websiteUrl: '',
     phoneUrl: anyskill,
   },
   {
@@ -64,7 +64,7 @@ const PROJECTS = [
       'A mobile service marketplace connecting customers with service providers. The app brings together service discovery, messaging, maps and payments, supported by Firebase integrations and a maintainable architecture.',
     tags: ['Clean Architecture', 'BLoC · GetX · Provider', 'Razorpay', 'Maps & messaging'],
     badge: 'Amazon Appstore · GitHub',
-    websiteUrl: '', // Add the official project URL here.
+    websiteUrl: '',
     phoneUrl: taskpro,
   },
   {
@@ -77,7 +77,7 @@ const PROJECTS = [
       'A fitness and coaching app designed to help users follow their progress and stay consistent. The experience includes progress tracking, reminders and locally stored app data, built around an MVVM approach.',
     tags: ['MVVM', 'Hive', 'Progress tracking', 'Reminders'],
     badge: 'Amazon Appstore · GitHub',
-    websiteUrl: '', // Add the official project URL here.
+    websiteUrl: '',
     phoneUrl: ptportal,
   },
 ];
@@ -106,7 +106,6 @@ export default function UiUxDesign({
     return () => mediaQuery.removeEventListener('change', updatePosition);
   }, []);
 
-  // Start this page at the top and restore the previous scroll behavior.
   useEffect(() => {
     const root = document.documentElement;
     const previousBehavior = root.style.scrollBehavior;
@@ -124,7 +123,6 @@ export default function UiUxDesign({
     };
   }, []);
 
-  // Entrance animation.
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return undefined;
@@ -157,9 +155,18 @@ export default function UiUxDesign({
     return () => entranceTween.kill();
   }, []);
 
+  const navigateToDoors = () => {
+    onNavigate('/#doors', {
+      hash: '#doors',
+      doorIndex: 1,
+      isBack: true,
+      preserveScroll: true,
+      skipDoorCenter: true,
+    });
+  };
+
   const handleBackClick = (event) => {
     event?.preventDefault();
-
     if (isLeaving) return;
     setIsLeaving(true);
 
@@ -168,7 +175,7 @@ export default function UiUxDesign({
     ).matches;
 
     if (prefersReducedMotion || !containerRef.current) {
-      onNavigate('/', { doorIndex: 1, isBack: true });
+      navigateToDoors();
       return;
     }
 
@@ -182,13 +189,10 @@ export default function UiUxDesign({
       borderRadius: '48px',
       duration: 0.38,
       ease: 'power2.in',
-      onComplete: () => {
-        onNavigate('/', { doorIndex: 1, isBack: true });
-      },
+      onComplete: navigateToDoors,
     });
   };
 
-  // Track scroll position for the scroll-to-top button.
   useEffect(() => {
     const handleScroll = () => {
       setShowScrollTop(window.scrollY > 400);
@@ -202,7 +206,6 @@ export default function UiUxDesign({
     };
   }, []);
 
-  // Stacked project-card scroll animation.
   useEffect(() => {
     const stage = cardsContainerRef.current;
     if (!stage) return undefined;
@@ -384,7 +387,6 @@ export default function UiUxDesign({
                   />
 
                   <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 items-center gap-3 sm:gap-4 lg:gap-10 h-full">
-                    {/* Project details */}
                     <div
                       className={`order-2 flex flex-col justify-center min-w-0 ${
                         textFirst
@@ -448,7 +450,6 @@ export default function UiUxDesign({
                       </div>
                     </div>
 
-                    {/* Phone preview */}
                     <div
                       className={`order-1 relative flex h-[190px] sm:h-[220px] lg:h-auto items-center justify-center select-none ${
                         textFirst
